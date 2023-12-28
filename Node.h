@@ -8,9 +8,9 @@
 
 
 using namespace std;
-const int SCREEN_WIDTH = 600;
-const int SCREEN_HEIGHT = 400;
-const int NODE_SIZE = 20;
+const int SCREEN_WIDTH = 400;
+const int SCREEN_HEIGHT = 200;
+const int NODE_SIZE = 40;
 class Node
 {	
 
@@ -19,7 +19,7 @@ public:
 	int row;
 	int column;
 	bool visited;
-	vector<int>unVisited = { 0,1,2,3};
+	
 	sf::Color color;
 
 	void drawNode(sf::RenderWindow& window);

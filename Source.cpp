@@ -10,9 +10,15 @@ int NodesPerRow;
 
 
 
+
 void drawNodes(sf::RenderWindow &window,vector<vector<Node>>v,int cX,int cY) {
 
-    v[cX][cY].color = sf::Color::Red;
+    if (cX != -1 && cY != -1) {
+        v[cX][cY].color = sf::Color::Red;
+        
+    }
+
+    
 
     for (int i = 0; i < v.size(); i++) {
         for (int j = 0; j < v[0].size(); j++) {
@@ -21,7 +27,10 @@ void drawNodes(sf::RenderWindow &window,vector<vector<Node>>v,int cX,int cY) {
         }
 
     }
-    v[cX][cY].color = sf::Color::White;
+    if (cX != -1 && cY != -1) {
+        v[cX][cY].color = sf::Color::White;
+
+    }
 
 }
 
@@ -53,7 +62,18 @@ int getDirection(int x,int y) {
 
 }
 
-void recurse(int i,int j,vector<vector<Node>>&v) {
+void joinNodes(int i, int j, int newI, int newJ, int r, vector<vector<Node>>& nodes) {
+
+
+    nodes[newI][newJ].visited = true;
+    nodes[i][j].walls[r] = 0;
+    nodes[newI][newJ].walls[(r + 2) % 4] = 0;
+
+
+
+}
+
+void backtrackingAlgorithm(int i,int j,vector<vector<Node>>&v) {
     
     next_permutation(perm.begin(), perm.end());
     swap(perm[rand() % 4], perm[rand() % 4]);
@@ -73,7 +93,7 @@ void recurse(int i,int j,vector<vector<Node>>&v) {
                 v[newI][newJ].walls[(direction + 2) % 4]=0;
 
                 v[newI][newJ].visited = 1;
-                recurse(newI, newJ, v);
+                backtrackingAlgorithm(newI, newJ, v);
 
             }
                     
@@ -81,6 +101,12 @@ void recurse(int i,int j,vector<vector<Node>>&v) {
     }
 
 }
+
+
+
+
+
+
 
 void ff() {
 
@@ -97,11 +123,10 @@ int main()
     int usedAlgorithm = 1;
     srand(static_cast<unsigned>(time(0)));
 
-
     NodesPerColumn = SCREEN_HEIGHT / NODE_SIZE;
     
     NodesPerRow = SCREEN_WIDTH / NODE_SIZE;
-    cout << NodesPerColumn << "\n" << NodesPerRow << '\n';
+    
     vector<vector<Node>>nodes(NodesPerColumn,vector<Node>(NodesPerRow));
 
     for (int i = 0; i < NodesPerColumn; i++) {
@@ -125,6 +150,7 @@ int main()
 
     nodes[0][0].visited = 1;
     //recurse(0, 0, nodes);
+
     while (window.isOpen())
     {
         sf::Event event;
@@ -185,9 +211,7 @@ int main()
                                 cX = newI;
                                 cY = newJ;
                                 foundNotVisited = true;
-                                nodes[newI][newJ].visited = true;
-                                nodes[newI][newJ].walls[(r + 2) % 4] = 0;
-                                nodes[i][j].walls[r] = 0;
+                                joinNodes(i, j, newI, newJ, r, nodes);
 
                                 s.push({ newI ,newJ });
 
@@ -205,6 +229,9 @@ int main()
             if (usedAlgorithm == 2) {
 
 
+                
+
+
             }
 
         }
@@ -212,8 +239,6 @@ int main()
         
         drawNodes(window, nodes,cX,cY);
         window.display();
-        
-        
 
     }
 
