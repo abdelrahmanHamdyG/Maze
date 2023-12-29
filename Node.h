@@ -8,27 +8,31 @@
 
 
 using namespace std;
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
-const int NODE_SIZE = 30;
+const int SCREEN_WIDTH = 600;
+const int SCREEN_HEIGHT = 400;
+const int NODE_SIZE = 20;
 const float nodesToWall = 0.8;
 class Node
-{	
+{
 
 public:
 	vector<bool>walls;
 	int row;
 	int column;
 	bool visited;
-	
+
 	sf::Color color;
 
 	void drawNode(sf::RenderWindow& window);
-	
-	Node(int row,int column);	
+
+	Node(int row, int column);
 	Node();
 
-	
-	
-};
 
+
+};
+class wall {
+public:
+	Node* node1;
+	Node* node2;
+};
