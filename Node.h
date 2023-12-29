@@ -8,9 +8,9 @@
 
 
 using namespace std;
-const int SCREEN_WIDTH = 400;
-const int SCREEN_HEIGHT = 200;
-const int NODE_SIZE = 40;
+const int SCREEN_WIDTH = 1000;
+const int SCREEN_HEIGHT = 800;
+const int NODE_SIZE = 35;
 class Node
 {	
 

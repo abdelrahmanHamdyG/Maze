@@ -6,6 +6,10 @@
 
 int NodesPerColumn;
 int NodesPerRow;
+int cX = 0;
+int cY = 0;
+
+
 
 
 
@@ -103,6 +107,72 @@ void backtrackingAlgorithm(int i,int j,vector<vector<Node>>&v) {
 }
 
 
+void backTracking2(stack<pair<int,int>> &s,vector<vector<Node>>& nodes) {
+
+    if (!s.empty()) {
+
+
+        int i = s.top().first;
+        int j = s.top().second;
+
+
+        bool AllVisited = true;
+        for (int k = 0; k < 4; k++) {
+
+
+            int newJ = j + moveX[perm[k]];
+            int newI = i + moveY[perm[k]];
+
+            if (possible(newI, newJ)) {
+
+                if (!nodes[newI][newJ].visited) {
+
+
+                    AllVisited = false;
+                    break;
+
+
+                }
+
+            }
+        }
+        bool foundNotVisited = false;
+
+
+        if (AllVisited) {
+            s.pop();
+
+        }
+        else {
+            while (!foundNotVisited) {
+
+                int r = rand() % 4;
+                int newJ = j + moveX[r];
+
+                int newI = i + moveY[r];
+
+                if (possible(newI, newJ)) {
+
+                    if (!nodes[newI][newJ].visited) {
+
+                        cX = newI;
+                        cY = newJ;
+                        foundNotVisited = true;
+                        joinNodes(i, j, newI, newJ, r, nodes);
+
+                        s.push({ newI ,newJ });
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+}
 
 
 
@@ -113,8 +183,6 @@ void ff() {
 
 
 }
-int cX = 0;
-int cY = 0;
 
 int main()
 {
@@ -162,76 +230,15 @@ int main()
         }
         window.clear(sf::Color::Black);
         if (usedAlgorithm == 1) {
-            if (!s.empty()) {
-
-
-                int i = s.top().first;
-                int j = s.top().second;
-
-
-                bool AllVisited = true;
-                for (int k = 0; k < 4; k++) {
-
-
-                    int newJ = j + moveX[perm[k]];
-                    int newI = i + moveY[perm[k]];
-
-                    if (possible(newI, newJ)) {
-
-                        if (!nodes[newI][newJ].visited) {
-
-
-                            AllVisited = false;
-                            break;
-
-
-                        }
-
-                    }
-                }
-                bool foundNotVisited = false;
-
-
-                if (AllVisited) {
-                    s.pop();
-
-                }
-                else {
-                    while (!foundNotVisited) {
-
-                        int r = rand() % 4;
-                        int newJ = j + moveX[r];
-
-                        int newI = i + moveY[r];
-
-                        if (possible(newI, newJ)) {
-
-                            if (!nodes[newI][newJ].visited) {
-
-                                cX = newI;
-                                cY = newJ;
-                                foundNotVisited = true;
-                                joinNodes(i, j, newI, newJ, r, nodes);
-
-                                s.push({ newI ,newJ });
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            }
+            
+            if(s.empty())
+                cX = cY = -1;
+            backTracking2(s, nodes);
         }
         else {
             if (usedAlgorithm == 2) {
 
-
-                
-
-
+    
             }
 
         }

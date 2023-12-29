@@ -11,7 +11,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 
 		sf::RectangleShape inner;
 
-		float innerSize = 0.7 * NODE_SIZE;
+		float innerSize = 0.6 * NODE_SIZE;
 		float wallWidth = (NODE_SIZE - innerSize) / 2;
 		
 
