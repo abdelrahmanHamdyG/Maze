@@ -187,12 +187,31 @@ void ff() {
 int main()
 {
 
+    sf::Image redCircle;
+    redCircle.loadFromFile("C:\\Users\\dhamd\\source\\repos\\Project22\\red_circle.png");
+
+    float innerSize = nodesToWall * NODE_SIZE;
+    float wallWidth = (NODE_SIZE - innerSize) / 2;
+
+
+    sf::Font font;
+    if (!font.loadFromFile("fontt.ttf")) {
+        // Handle font loading error
+        return -1;
+    }
+
+    sf::Text youWonText("You Won!", font, 40);
+    youWonText.setPosition((SCREEN_WIDTH - youWonText.getLocalBounds().width) / 2.0f,
+        (SCREEN_HEIGHT - youWonText.getLocalBounds().height) / 2.0f);
+    youWonText.setFillColor(sf::Color::Green);
+    youWonText.setStyle(sf::Text::Bold);
+
 
     int usedAlgorithm = 1;
     srand(static_cast<unsigned>(time(0)));
 
     NodesPerColumn = SCREEN_HEIGHT / NODE_SIZE;
-    
+
     NodesPerRow = SCREEN_WIDTH / NODE_SIZE;
     
     vector<vector<Node>>nodes(NodesPerColumn,vector<Node>(NodesPerRow));
@@ -212,9 +231,16 @@ int main()
     stack<pair<int, int>>s;
 
     s.push({ 0, 0 });
+    bool isFinishedCreatingMaze = false;
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML Rectangle Example");
 
+    sf::Sprite sprite;
+    sf::Texture texture;
+    texture.loadFromImage(redCircle);
+    sprite.setTexture(texture);
+    
+    int currentX=0,currentY = 0;
 
     nodes[0][0].visited = 1;
     //recurse(0, 0, nodes);
@@ -227,13 +253,54 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+
+
+            if (isFinishedCreatingMaze) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+                    
+                    if (!nodes[currentX][currentY].walls[1]&&possible(currentX-1,currentY)) {
+
+                        currentX -= 1;
+                    }
+                    cout << currentX << " " << currentY << '\n';
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+                    if (!nodes[currentX][currentY].walls[3] && possible(currentX +1, currentY)) {
+
+                        currentX += 1;
+                    }
+                    
+                    cout << currentX << " " << currentY << '\n';
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+                    if (!nodes[currentX][currentY].walls[0] && possible(currentX , currentY-1)) {
+
+                        currentY -= 1;
+                    }
+                    cout << currentX << " " << currentY << '\n';
+                }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+                    if (!nodes[currentX][currentY].walls[2] && possible(currentX, currentY +1)) {
+
+                        currentY += 1;
+                    }
+                    cout << currentX << " " << currentY << '\n';
+                }
+
+            }
         }
+
         window.clear(sf::Color::Black);
         if (usedAlgorithm == 1) {
             
-            if(s.empty())
+            if (s.empty()) {
                 cX = cY = -1;
-            backTracking2(s, nodes);
+                isFinishedCreatingMaze = true;
+                
+            }
+            else {
+                backTracking2(s, nodes);
+            }
         }
         else {
             if (usedAlgorithm == 2) {
@@ -242,9 +309,28 @@ int main()
             }
 
         }
-        sf::sleep(sf::milliseconds(1));
         
-        drawNodes(window, nodes,cX,cY);
+
+        
+        
+        sprite.setScale((NODE_SIZE*nodesToWall)/512.0, (NODE_SIZE * nodesToWall) / 512.0);
+        
+        // 512X=(nodeSize*ratio)
+        sprite.setPosition(sf::Vector2f(currentY * NODE_SIZE + wallWidth, currentX * NODE_SIZE + wallWidth));
+        
+
+        
+        
+
+        
+        
+        
+        drawNodes(window, nodes, cX, cY);
+        if(isFinishedCreatingMaze)
+            window.draw(sprite);
+
+        
+       
         window.display();
 
     }
