@@ -8,10 +8,16 @@
 int NodesPerColumn;
 int NodesPerRow;
 
+
+
+typedef pair<int, int> Pair;
+typedef pair<double, pair<int, int> > pPair;
+
 int cX = 0;
 int cY = 0;
 stack<pair<int, int>>s;
 vector <wall> Vwalls;
+set<pPair> openList;
 vector<int>perm = { 0,1,2,3 };
 int moveX[] = { -1,0,1,0 };
 int moveY[] = { 0,-1,0,1 };
@@ -26,11 +32,6 @@ bool possible(int i, int j) {
 
 }
 
-
-
-
-typedef pair<int, int> Pair;
-typedef pair<double, pair<int, int> > pPair;
 
 
 
@@ -111,87 +112,44 @@ void tracePath(vector<vector<Node>>& nodes, Pair dest)
         pair<int, int> p = Path.top();
         Path.pop();
         printf("-> (%d,%d) ", p.first, p.second);
+        nodes[p.first][p.second].color = sf::Color::Red;
+        nodes[p.first][p.second].wallColor= sf::Color::Red;
     }
 
     return;
 }
 
 
-void aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest)
+bool  aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest,vector<vector<bool>>&closedList)
 {
     // If the source is out of range
-    if (possible(src.first, src.second) == false) {
-        printf("Source is invalid\n");
-        return;
-    }
-
-    // If the destination is out of range
-    if (possible(dest.first, dest.second) == false) {
-        printf("Destination is invalid\n");
-        return;
-    }
+    
 
 
 
 
-
-    // Create a closed list and initialise it to false which
-    // means that no cell has been included yet This closed
-    // list is implemented as a boolean 2D array
-    vector<vector<bool>>closedList(NodesPerColumn, vector<bool>(NodesPerRow, false));
-
-
-    // Declare a 2D array of structure to hold the details
-    // of that cell
-    //vector<vector<Node>>nodes1(NodesPerColumn,vector<Node>(NodesPerRow));
-
-    int i, j;
-
-    for (i = 0; i < NodesPerColumn; i++) {
-        for (j = 0; j < NodesPerRow; j++) {
-            nodes[i][j].row = i;
-            nodes[i][j].column = j;
-            nodes[i][j].f = FLT_MAX;
-            nodes[i][j].g = FLT_MAX;
-            nodes[i][j].h = FLT_MAX;
-            nodes[i][j].parent_i = -1;
-            nodes[i][j].parent_j = -1;
-        }
-    }
-
-
-    i = src.first, j = src.second;
-    nodes[i][j].f = 0.0;
-    nodes[i][j].g = 0.0;
-    nodes[i][j].h = 0.0;
-    nodes[i][j].parent_i = i;
-    nodes[i][j].parent_j = j;
-
-
-    set<pPair> openList;
-
-    // Put the starting cell on the open list and set its
-    // 'f' as 0
-    openList.insert(make_pair(0.0, make_pair(i, j)));
-
+    
     // We set this boolean value as false as initially
     // the destination is not reached.
-    bool foundDest = false;
+       bool foundDest = false;
 
-    while (!openList.empty()) {
+    
         pPair p = *openList.begin();
 
         // Remove this vertex from the open list
         openList.erase(openList.begin());
 
         // Add this vertex to the closed list
+        int i, j;
+
         i = p.second.first;
         j = p.second.second;
+        
         closedList[i][j] = true;
 
         double gNew, hNew, fNew;
 
-
+        
         // Only process this cell if this is a valid one
         for (int k = 0; k < 4; k++)
         {
@@ -204,9 +162,24 @@ void aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest)
                     nodes[i + moveX[k]][j + moveY[k]].parent_i = i;
                     nodes[i + moveX[k]][j + moveY[k]].parent_j = j;
                     printf("The destination cell is found\n");
+
+                    for (int i = 0; i < NodesPerColumn; i++) {
+                        for (int j = 0; j < NodesPerRow; j++) {
+                            nodes[i][j].color = sf::Color::White;
+                            nodes[i][j].wallColor = sf::Color::White;
+                            
+
+                        }
+                    }
+
+
+                    nodes[i + moveX[k]][j + moveY[k]].color = sf::Color::Red;
+                    
                     tracePath(nodes, dest);
                     foundDest = true;
-                    return;
+                    openList.clear();
+                    
+                    return foundDest;
                 }
                 // If the successor is already on the closed
                 // list or if it is blocked, then ignore it.
@@ -220,6 +193,7 @@ void aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest)
                     if (nodes[i + moveX[k]][j + moveY[k]].f == FLT_MAX
                         || nodes[i + moveX[k]][j + moveY[k]].f > fNew) {
                         openList.insert(make_pair(fNew, make_pair(i + moveX[k], j + moveY[k])));
+                        
 
                         // Update the details of this cell
                         nodes[i + moveX[k]][j + moveY[k]].f = fNew;
@@ -227,17 +201,19 @@ void aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest)
                         nodes[i + moveX[k]][j + moveY[k]].h = hNew;
                         nodes[i + moveX[k]][j + moveY[k]].parent_i = i;
                         nodes[i + moveX[k]][j + moveY[k]].parent_j = j;
+                        nodes[i + moveX[k]][j + moveY[k]].color = sf::Color::Green;
+                        nodes[i + moveX[k]][j + moveY[k]].wallColor = sf::Color::Green;
                     }
                 }
             }
 
         }
         
-    }
-    if (foundDest == false)
-        printf("Failed to find the Destination Cell\n");
+        sf::sleep(sf::milliseconds(60));
 
-    return;
+    
+
+    return foundDest;
 }
 
 
@@ -488,8 +464,46 @@ int main()
 
 
 
+
+
+    // Create a closed list and initialise it to false which
+    // means that no cell has been included yet This closed
+    // list is implemented as a boolean 2D array
+    vector<vector<bool>>closedList(NodesPerColumn, vector<bool>(NodesPerRow, false));
+
+
+    // Declare a 2D array of structure to hold the details
+    // of that cell
+    //vector<vector<Node>>nodes1(NodesPerColumn,vector<Node>(NodesPerRow));
+
+    
+
+    
+
+    // Put the starting cell on the open list and set its
+    // 'f' as 0
+    openList.insert(make_pair(0.0, make_pair(0, 0)));
+
+    for (int i = 0; i < NodesPerColumn; i++) {
+        for (int j = 0; j < NodesPerRow; j++) {
+            nodes[i][j].row = i;
+            nodes[i][j].column = j;
+            nodes[i][j].f = FLT_MAX;
+            nodes[i][j].g = FLT_MAX;
+            nodes[i][j].h = FLT_MAX;
+            nodes[i][j].parent_i = -1;
+            nodes[i][j].parent_j = -1;
+        }
+    }
+
     Pair src = make_pair(0, 0);
     Pair dest = make_pair(NodesPerColumn - 1, NodesPerRow - 1);
+
+    nodes[0][0].f = 0.0;
+    nodes[0][0].g = 0.0;
+    nodes[0][0].h = 0.0;
+    nodes[0][0].parent_i = 0;
+    nodes[0][0].parent_j = 0;
 
 
 
@@ -634,8 +648,19 @@ int main()
             window.draw(sprite);
             
             if (!startingSolving) {
-                startingSolving = true;
-                aStarSearch(nodes, src, dest);
+                
+                
+                if (openList.empty()==false) {
+                    bool ans=aStarSearch(nodes, src, dest, closedList);
+                    if (ans)
+                        startingSolving = false;
+
+                }
+                else {
+                    startingSolving = false;
+                }
+
+
             }
             
         }

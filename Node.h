@@ -19,11 +19,13 @@ public:
 	vector<bool>walls;
 	int row;
 	int column;
+
 	bool visited;
 	int parent_i, parent_j;
 	double f, g, h;
 
 	sf::Color color;
+	sf::Color wallColor;
 
 	void drawNode(sf::RenderWindow& window);
 

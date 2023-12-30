@@ -7,7 +7,7 @@
 void Node::drawNode(sf::RenderWindow& window) {
 
 
-	if (visited) {
+	if (visited) {	
 
 		sf::RectangleShape inner;
 
@@ -28,7 +28,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 			sf::RectangleShape wall;
 			wall.setPosition(sf::Vector2f(column * NODE_SIZE+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE + wallWidth));
 			wall.setSize(sf::Vector2f(wallWidth, innerSize));
-			wall.setFillColor(sf::Color::White);
+			wall.setFillColor(wallColor);
 			window.draw(wall);
 		}
 
@@ -37,7 +37,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 			sf::RectangleShape wall;
 			wall.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE));
 			wall.setSize(sf::Vector2f(innerSize, wallWidth));
-			wall.setFillColor(sf::Color::White);
+			wall.setFillColor(wallColor);
 			window.draw(wall);
 		}
 
@@ -46,7 +46,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 			sf::RectangleShape wall;
 			wall.setPosition(sf::Vector2f(column * NODE_SIZE + innerSize + wallWidth+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE + wallWidth));
 			wall.setSize(sf::Vector2f(wallWidth, innerSize));
-			wall.setFillColor(sf::Color::White);
+			wall.setFillColor(wallColor);
 			window.draw(wall);
 		}
 
@@ -55,7 +55,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 			sf::RectangleShape wall;
 			wall.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE + innerSize + wallWidth));
 			wall.setSize(sf::Vector2f(innerSize, wallWidth));
-			wall.setFillColor(sf::Color::White);
+			wall.setFillColor(wallColor);
 			window.draw(wall);
 		}
 
@@ -71,6 +71,7 @@ Node::Node(int i, int j) {
 	visited = false;
 
 	color = sf::Color::White;
+	wallColor = sf::Color::White;
 
 }
 
@@ -84,4 +85,5 @@ Node::Node()
 	visited = false;
 
 	color = sf::Color::White;
+	wallColor = sf::Color::White;
 }
