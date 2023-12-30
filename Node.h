@@ -20,6 +20,8 @@ public:
 	int row;
 	int column;
 	bool visited;
+	int parent_i, parent_j;
+	double f, g, h;
 
 	sf::Color color;
 

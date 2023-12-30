@@ -13,7 +13,6 @@ public:
 	float height;
 	int idx;
 	sf::Font font;
-	
 	std::string text;
 
 

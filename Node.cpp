@@ -76,4 +76,12 @@ Node::Node(int i, int j) {
 
 Node::Node()
 {
+
+	
+	row = 0;
+	column = 0;
+	walls = vector<bool>(4, true);
+	visited = false;
+
+	color = sf::Color::White;
 }
