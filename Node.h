@@ -23,6 +23,7 @@ public:
 	bool visited;
 	int parent_i, parent_j;
 	double f, g, h;
+	int group;
 
 	sf::Color color;
 	sf::Color wallColor;

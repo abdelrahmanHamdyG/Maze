@@ -7,16 +7,16 @@
 void Node::drawNode(sf::RenderWindow& window) {
 
 
-	if (visited) {	
+	if (visited) {
 
 		sf::RectangleShape inner;
 
 		float innerSize = nodesToWall * NODE_SIZE;
 		float wallWidth = (NODE_SIZE - innerSize) / 2;
-			
+
 
 		inner.setFillColor(color);
-		inner.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth+(SCREEN_WIDTH/3.0), row * NODE_SIZE + wallWidth));
+		inner.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth + (SCREEN_WIDTH / 3.0), row * NODE_SIZE + wallWidth));
 
 
 		inner.setSize(sf::Vector2f(innerSize, innerSize));
@@ -26,7 +26,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 		if (!walls[0]) {
 
 			sf::RectangleShape wall;
-			wall.setPosition(sf::Vector2f(column * NODE_SIZE+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE + wallWidth));
+			wall.setPosition(sf::Vector2f(column * NODE_SIZE + (SCREEN_WIDTH / 3.0), row * NODE_SIZE + wallWidth));
 			wall.setSize(sf::Vector2f(wallWidth, innerSize));
 			wall.setFillColor(wallColor);
 			window.draw(wall);
@@ -35,7 +35,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 		if (!walls[1]) {
 
 			sf::RectangleShape wall;
-			wall.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE));
+			wall.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth + (SCREEN_WIDTH / 3.0), row * NODE_SIZE));
 			wall.setSize(sf::Vector2f(innerSize, wallWidth));
 			wall.setFillColor(wallColor);
 			window.draw(wall);
@@ -44,7 +44,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 		if (!walls[2]) {
 
 			sf::RectangleShape wall;
-			wall.setPosition(sf::Vector2f(column * NODE_SIZE + innerSize + wallWidth+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE + wallWidth));
+			wall.setPosition(sf::Vector2f(column * NODE_SIZE + innerSize + wallWidth + (SCREEN_WIDTH / 3.0), row * NODE_SIZE + wallWidth));
 			wall.setSize(sf::Vector2f(wallWidth, innerSize));
 			wall.setFillColor(wallColor);
 			window.draw(wall);
@@ -53,7 +53,7 @@ void Node::drawNode(sf::RenderWindow& window) {
 		if (!walls[3]) {
 
 			sf::RectangleShape wall;
-			wall.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth+ (SCREEN_WIDTH / 3.0), row * NODE_SIZE + innerSize + wallWidth));
+			wall.setPosition(sf::Vector2f(column * NODE_SIZE + wallWidth + (SCREEN_WIDTH / 3.0), row * NODE_SIZE + innerSize + wallWidth));
 			wall.setSize(sf::Vector2f(innerSize, wallWidth));
 			wall.setFillColor(wallColor);
 			window.draw(wall);
@@ -71,6 +71,7 @@ Node::Node(int i, int j) {
 	visited = false;
 
 	color = sf::Color::White;
+	group = 0;
 	wallColor = sf::Color::White;
 
 }
@@ -78,12 +79,12 @@ Node::Node(int i, int j) {
 Node::Node()
 {
 
-	
+
 	row = 0;
 	column = 0;
 	walls = vector<bool>(4, true);
 	visited = false;
-
+	group = 0;
 	color = sf::Color::White;
 	wallColor = sf::Color::White;
-}
+}	

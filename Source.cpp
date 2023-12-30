@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <set>
+#include<random>
 #include"Node.h";
 #include "ButtonView.h"
 #include<ctime>
@@ -28,6 +29,25 @@ bool possible(int i, int j) {
     if (i < 0 || j < 0 || i >= NodesPerColumn || j >= NodesPerRow)
         return 0;
     return 1;
+
+
+}
+
+void addWall(vector<wall>& Vwall, int row, int column, vector<vector<Node>>& v,int algo) {
+    int i=0;
+    if (algo==3)
+        i = 2;
+
+    for (; i < 4; i++) {
+        wall w;
+        w.node1 = &(v[row][column]);
+        int neiRow = row + moveX[i];
+        int neiColumn = column + moveY[i];
+        if (possible(neiRow, neiColumn)) {
+            w.node2 = &(v[neiRow][neiColumn]);
+            Vwall.push_back(w);
+        }
+    }
 
 
 }
@@ -113,105 +133,105 @@ void tracePath(vector<vector<Node>>& nodes, Pair dest)
         Path.pop();
         printf("-> (%d,%d) ", p.first, p.second);
         nodes[p.first][p.second].color = sf::Color::Red;
-        nodes[p.first][p.second].wallColor= sf::Color::Red;
+        nodes[p.first][p.second].wallColor = sf::Color::Red;
     }
 
     return;
 }
 
 
-bool  aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest,vector<vector<bool>>&closedList)
+bool  aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest, vector<vector<bool>>& closedList)
 {
     // If the source is out of range
-    
 
 
 
 
-    
+
+
     // We set this boolean value as false as initially
     // the destination is not reached.
-       bool foundDest = false;
+    bool foundDest = false;
 
-    
-        pPair p = *openList.begin();
 
-        // Remove this vertex from the open list
-        openList.erase(openList.begin());
+    pPair p = *openList.begin();
 
-        // Add this vertex to the closed list
-        int i, j;
+    // Remove this vertex from the open list
+    openList.erase(openList.begin());
 
-        i = p.second.first;
-        j = p.second.second;
-        
-        closedList[i][j] = true;
+    // Add this vertex to the closed list
+    int i, j;
 
-        double gNew, hNew, fNew;
+    i = p.second.first;
+    j = p.second.second;
 
-        
-        // Only process this cell if this is a valid one
-        for (int k = 0; k < 4; k++)
-        {
+    closedList[i][j] = true;
 
-            if (possible(i + moveX[k], j + moveY[k]) == true && isUnBlocked(nodes, i + moveX[k], j + moveY[k], k)) {
-                // If the destination cell is the same as the
-                // current successor
-                if (isDestination(i + moveX[k], j + moveY[k], dest) == true) {
-                    // Set the Parent of the destination cell
+    double gNew, hNew, fNew;
+
+
+    // Only process this cell if this is a valid one
+    for (int k = 0; k < 4; k++)
+    {
+
+        if (possible(i + moveX[k], j + moveY[k]) == true && isUnBlocked(nodes, i + moveX[k], j + moveY[k], k)) {
+            // If the destination cell is the same as the
+            // current successor
+            if (isDestination(i + moveX[k], j + moveY[k], dest) == true) {
+                // Set the Parent of the destination cell
+                nodes[i + moveX[k]][j + moveY[k]].parent_i = i;
+                nodes[i + moveX[k]][j + moveY[k]].parent_j = j;
+                printf("The destination cell is found\n");
+
+                for (int i = 0; i < NodesPerColumn; i++) {
+                    for (int j = 0; j < NodesPerRow; j++) {
+                        nodes[i][j].color = sf::Color::White;
+                        nodes[i][j].wallColor = sf::Color::White;
+
+
+                    }
+                }
+
+
+                nodes[i + moveX[k]][j + moveY[k]].color = sf::Color::Red;
+
+                tracePath(nodes, dest);
+                foundDest = true;
+                openList.clear();
+
+                return foundDest;
+            }
+            // If the successor is already on the closed
+            // list or if it is blocked, then ignore it.
+            // Else do the following
+            else if (closedList[i + moveX[k]][j + moveY[k]] == false
+                && isUnBlocked(nodes, i + moveX[k], j + moveY[k], k)
+                == true) {
+                gNew = nodes[i][j].g + 1.0;
+                hNew = calculateHValue(i + moveX[k], k + moveY[k], dest);
+                fNew = gNew + hNew;
+                if (nodes[i + moveX[k]][j + moveY[k]].f == FLT_MAX
+                    || nodes[i + moveX[k]][j + moveY[k]].f > fNew) {
+                    openList.insert(make_pair(fNew, make_pair(i + moveX[k], j + moveY[k])));
+
+
+                    // Update the details of this cell
+                    nodes[i + moveX[k]][j + moveY[k]].f = fNew;
+                    nodes[i + moveX[k]][j + moveY[k]].g = gNew;
+                    nodes[i + moveX[k]][j + moveY[k]].h = hNew;
                     nodes[i + moveX[k]][j + moveY[k]].parent_i = i;
                     nodes[i + moveX[k]][j + moveY[k]].parent_j = j;
-                    printf("The destination cell is found\n");
-
-                    for (int i = 0; i < NodesPerColumn; i++) {
-                        for (int j = 0; j < NodesPerRow; j++) {
-                            nodes[i][j].color = sf::Color::White;
-                            nodes[i][j].wallColor = sf::Color::White;
-                            
-
-                        }
-                    }
-
-
-                    nodes[i + moveX[k]][j + moveY[k]].color = sf::Color::Red;
-                    
-                    tracePath(nodes, dest);
-                    foundDest = true;
-                    openList.clear();
-                    
-                    return foundDest;
-                }
-                // If the successor is already on the closed
-                // list or if it is blocked, then ignore it.
-                // Else do the following
-                else if (closedList[i + moveX[k]][j + moveY[k]] == false
-                    && isUnBlocked(nodes, i + moveX[k], j + moveY[k], k)
-                    == true) {
-                    gNew = nodes[i][j].g + 1.0;
-                    hNew = calculateHValue(i + moveX[k], k + moveY[k], dest);
-                    fNew = gNew + hNew;
-                    if (nodes[i + moveX[k]][j + moveY[k]].f == FLT_MAX
-                        || nodes[i + moveX[k]][j + moveY[k]].f > fNew) {
-                        openList.insert(make_pair(fNew, make_pair(i + moveX[k], j + moveY[k])));
-                        
-
-                        // Update the details of this cell
-                        nodes[i + moveX[k]][j + moveY[k]].f = fNew;
-                        nodes[i + moveX[k]][j + moveY[k]].g = gNew;
-                        nodes[i + moveX[k]][j + moveY[k]].h = hNew;
-                        nodes[i + moveX[k]][j + moveY[k]].parent_i = i;
-                        nodes[i + moveX[k]][j + moveY[k]].parent_j = j;
-                        nodes[i + moveX[k]][j + moveY[k]].color = sf::Color::Green;
-                        nodes[i + moveX[k]][j + moveY[k]].wallColor = sf::Color::Green;
-                    }
+                    nodes[i + moveX[k]][j + moveY[k]].color = sf::Color::Green;
+                    nodes[i + moveX[k]][j + moveY[k]].wallColor = sf::Color::Green;
                 }
             }
-
         }
-        
-        sf::sleep(sf::milliseconds(60));
 
-    
+    }
+
+    sf::sleep(sf::milliseconds(60));
+
+
 
     return foundDest;
 }
@@ -266,26 +286,11 @@ int getDirection(int x, int y) {
 
 void joinNodes(int i, int j, int newI, int newJ, int r, vector<vector<Node>>& nodes) {
 
-
+    nodes[i][j].visited = true;
     nodes[newI][newJ].visited = true;
     nodes[i][j].walls[r] = 0;
     nodes[newI][newJ].walls[(r + 2) % 4] = 0;
 
-
-
-}
-
-void addWall(vector<wall>& Vwall, int row, int column, vector<vector<Node>>& v) {
-    for (int i = 0; i < 4; i++) {
-        wall w;
-        w.node1 = &(v[row][column]);
-        int neiRow = row + moveX[i];
-        int neiColumn = column + moveY[i];
-        if (possible(neiRow, neiColumn)) {
-            w.node2 = &(v[neiRow][neiColumn]);
-            Vwall.push_back(w);
-        }
-    }
 
 
 }
@@ -378,11 +383,11 @@ void prim(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
         joinNodes((randwall.node1)->row, (randwall.node1)->column, (randwall.node2)->row, (randwall.node2)->column, r, nodes);
         if (opt1) {
             (randwall.node2)->visited = true;
-            addWall(Vwalls, (randwall.node2)->row, (randwall.node2)->column, nodes);
+            addWall(Vwalls, (randwall.node2)->row, (randwall.node2)->column, nodes,2);
         }
         else {
             (randwall.node1)->visited = true;
-            addWall(Vwalls, (randwall.node1)->row, (randwall.node1)->column, nodes);
+            addWall(Vwalls, (randwall.node1)->row, (randwall.node1)->column, nodes,2);
         }
     }
     Vwalls.erase(Vwalls.begin() + randwallIndex);
@@ -408,6 +413,41 @@ void clearStack(stack<pair<int, int>>& s) {
     }
 
 }
+void mergeGroups(vector<vector<Node>>& nodes, int g1, int g2) {
+
+    for (int i = 0; i < NodesPerColumn; i++) {
+        for (int j = 0; j < NodesPerRow; j++) {
+            if (nodes[i][j].group == g2) {
+                nodes[i][j].group = g1;
+            }
+        }
+    }
+
+}
+void Kruskal(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    std::shuffle(Vwalls.begin(), Vwalls.end(), g);
+
+    int random = 0;
+    wall* WW = &Vwalls[random];
+    Node* node1 = WW->node1;
+    Node* node2 = WW->node2;
+    int node1Row = (WW->node1)->row;
+    int node2Row = (WW->node2)->row;
+    int node1Column = (WW->node1)->column;
+    int node2Column = (WW->node2)->column;
+    int r = getDirection(node2Column - node1Column, node2Row - node1Row);
+
+    if (node1->group != node2->group) {
+
+        joinNodes(node1Row, node1Column, node2Row, node2Column, r, nodes);
+        mergeGroups(nodes, node1->group, node2->group);
+        cout << node1->group << " " << node2->group << endl;
+    }
+    Vwalls.erase(Vwalls.begin() + random);
+}
 
 void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
 
@@ -426,12 +466,24 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
         int randRow = rand() % NodesPerColumn;
         int randColumn = rand() % NodesPerRow;
         nodes[randRow][randColumn].visited = true;
-        addWall(Vwalls, randRow, randColumn, nodes);
+        addWall(Vwalls, randRow, randColumn, nodes,2);
         break;
     }
     case 3: {
-        // initalize kruskal here if you want something outside the loop 
+        Vwalls.clear();
+        int c = 0;
+        for (int i = 0; i < NodesPerColumn; i++) {
+            for (int j = 0; j < NodesPerRow; j++) {
+                nodes[i][j].group = c++;
+            }
+        }
+        for (int row = 0; row < NodesPerColumn; row++) {
+            for (int col = 0; col < NodesPerRow; col++) {   //adding all the walls into vector Vwalls
+                addWall(Vwalls, row, col, nodes,3);
+            }
+        }
         break;
+
     }
     default:
         break;
@@ -451,7 +503,7 @@ int main()
     NodesPerColumn = SCREEN_HEIGHT / NODE_SIZE;
     NodesPerRow = 2 * (SCREEN_WIDTH / 3.0) / NODE_SIZE;
 
-    int usedAlgorithm = 1;
+    int usedAlgorithm = 3;
     vector<vector<Node>>nodes(NodesPerColumn, vector<Node>(NodesPerRow));
 
     initializeAlgorithms(usedAlgorithm, nodes);
@@ -476,9 +528,9 @@ int main()
     // of that cell
     //vector<vector<Node>>nodes1(NodesPerColumn,vector<Node>(NodesPerRow));
 
-    
 
-    
+
+
 
     // Put the starting cell on the open list and set its
     // 'f' as 0
@@ -513,6 +565,7 @@ int main()
 
     ButtonView buttonBackTracking(10, 50, 73, 25, 1, "Backtracking");
     ButtonView buttonPrim(90, 50, 70, 25, 2, "Prim");
+    ButtonView buttonKruskal(70, 80, 70, 25, 2, "Kruskal");
 
     sf::Image redCircle;
     redCircle.loadFromFile("red_circle.png");
@@ -550,10 +603,11 @@ int main()
 
             int x1 = buttonBackTracking.handleEvent(event);
             int x2 = buttonPrim.handleEvent(event);
-            if (x1 || x2) {
+            int x3 = buttonKruskal.handleEvent(event);
+            if (x1 || x2||x3) {
                 currentX = 0;
                 currentY = 0;
-                usedAlgorithm = x1 | x2;
+                usedAlgorithm = x1 | x2|x3;
                 isFinishedCreatingMaze = false;
                 initializeAlgorithms(usedAlgorithm, nodes);
             }
@@ -595,15 +649,16 @@ int main()
 
         buttonBackTracking.update();
         buttonPrim.update();
+        buttonKruskal.update();
         window.clear(sf::Color::Black);
 
         buttonBackTracking.draw(window);
         buttonPrim.draw(window);
-
+        buttonKruskal.draw(window);
         if (usedAlgorithm == 1) {
 
 
-                if (s.empty()) {
+            if (s.empty()) {
                 cX = cY = -1;
                 isFinishedCreatingMaze = true;
 
@@ -627,7 +682,14 @@ int main()
 
                 if (usedAlgorithm == 3) {
                     // kurskal 
-
+                    cX = -1;
+                    cY = -1;
+                    if (!Vwalls.empty()) {
+                        Kruskal(Vwalls, nodes);
+                    }
+                    else {
+                        isFinishedCreatingMaze = true;
+                    }
 
                 }
 
@@ -646,12 +708,12 @@ int main()
             sprite.setPosition(sf::Vector2f(currentY * NODE_SIZE + wallWidth + (SCREEN_WIDTH / 3.0), currentX * NODE_SIZE + wallWidth));
 
             window.draw(sprite);
-            
+
             if (!startingSolving) {
-                
-                
-                if (openList.empty()==false) {
-                    bool ans=aStarSearch(nodes, src, dest, closedList);
+
+
+                if (openList.empty() == false) {
+                    bool ans = aStarSearch(nodes, src, dest, closedList);
                     if (ans)
                         startingSolving = false;
 
@@ -662,7 +724,7 @@ int main()
 
 
             }
-            
+
         }
 
 
