@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 
 #include"Node.h";
+#include "ButtonView.h"
 #include<ctime>
 
 
@@ -8,6 +9,8 @@ int NodesPerColumn;
 int NodesPerRow;
 int cX = 0;
 int cY = 0;
+stack<pair<int, int>>s;
+vector <wall> Vwalls;
 
 
 
@@ -92,37 +95,8 @@ void addWall(vector<wall>& Vwall, int row, int column, vector<vector<Node>>& v) 
 
 }
 
-void backtrackingAlgorithm(int i, int j, vector<vector<Node>>& v) {
 
-    next_permutation(perm.begin(), perm.end());
-    swap(perm[rand() % 4], perm[rand() % 4]);
-    for (int k = 0; k < 4; k++) {
-
-        int newJ = j + moveX[perm[k]];
-        int newI = i + moveY[perm[k]];
-
-        if (possible(newI, newJ)) {
-
-            if (!v[newI][newJ].visited) {
-
-
-                int direction = getDirection(moveX[perm[k]], moveY[perm[k]]);
-
-                v[i][j].walls[direction] = 0;
-                v[newI][newJ].walls[(direction + 2) % 4] = 0;
-
-                v[newI][newJ].visited = 1;
-                backtrackingAlgorithm(newI, newJ, v);
-
-            }
-
-        }
-    }
-
-}
-
-
-void backTracking2(stack<pair<int, int>>& s, vector<vector<Node>>& nodes) {
+void backTracking(stack<pair<int, int>>& s, vector<vector<Node>>& nodes) {
 
     if (!s.empty()) {
 
@@ -188,65 +162,133 @@ void backTracking2(stack<pair<int, int>>& s, vector<vector<Node>>& nodes) {
     }
 
 }
-
-
-
-
-
-void ff() {
+void solveWithDfs() {
 
 
 
 }
 
-int main()
-{
 
-    sf::Image redCircle;
-    redCircle.loadFromFile("red_circle.png");
-
-    float innerSize = nodesToWall * NODE_SIZE;
-    float wallWidth = (NODE_SIZE - innerSize) / 2;
-
-    vector <wall> Vwalls;
-    sf::Font font;
-    if (!font.loadFromFile("fontt.ttf")) {
-        // Handle font loading error
-        return -1;
+void prim(vector<wall>&Vwalls,vector<vector<Node>>&nodes) {
+    int randwallIndex = rand() % Vwalls.size();
+    wall randwall = Vwalls[randwallIndex];
+    bool opt1 = (randwall.node1)->visited && !(randwall.node2)->visited;
+    bool opt2 = !(randwall.node1)->visited && (randwall.node2)->visited;
+    if (opt1 || opt2) {
+        int node1Row = (randwall.node1)->row;
+        int node2Row = (randwall.node2)->row;
+        int node1Column = (randwall.node1)->column;
+        int node2Column = (randwall.node2)->column;
+        int r = getDirection(node2Column - node1Column, node2Row - node1Row);
+        joinNodes((randwall.node1)->row, (randwall.node1)->column, (randwall.node2)->row, (randwall.node2)->column, r, nodes);
+        if (opt1) {
+            (randwall.node2)->visited = true;
+            addWall(Vwalls, (randwall.node2)->row, (randwall.node2)->column, nodes);
+        }
+        else {
+            (randwall.node1)->visited = true;
+            addWall(Vwalls, (randwall.node1)->row, (randwall.node1)->column, nodes);
+        }
     }
-
-    sf::Text youWonText("You Won!", font, 40);
-    youWonText.setPosition((SCREEN_WIDTH - youWonText.getLocalBounds().width) / 2.0f,
-        (SCREEN_HEIGHT - youWonText.getLocalBounds().height) / 2.0f);
-    youWonText.setFillColor(sf::Color::Green);
-    youWonText.setStyle(sf::Text::Bold);
+    Vwalls.erase(Vwalls.begin() + randwallIndex);
+}
 
 
-    int usedAlgorithm = 2;
-    srand(static_cast<unsigned>(time(0)));
-
-    NodesPerColumn = SCREEN_HEIGHT / NODE_SIZE;
-
-    NodesPerRow = SCREEN_WIDTH / NODE_SIZE;
-
-    vector<vector<Node>>nodes(NodesPerColumn, vector<Node>(NodesPerRow));
+void nodesInitialization(vector<vector<Node>>&nodes) {
 
     for (int i = 0; i < NodesPerColumn; i++) {
         for (int j = 0; j < NodesPerRow; j++) {
-
-
             nodes[i][j] = Node(i, j);
-
-
-
-        }
-
+            
+            }
     }
 
-    stack<pair<int, int>>s;
+}
 
-    s.push({ 0, 0 });
+
+void clearStack(stack<pair<int,int>>&s) {
+
+    while (!s.empty()) {
+        s.pop();
+    }
+
+}
+
+void initializeAlgorithms(int usedAlgorithm,vector<vector<Node>>&nodes) {
+
+    nodesInitialization(nodes);
+
+    switch (usedAlgorithm) {
+    case 1: {
+
+        nodes[0][0].visited = 1;
+        clearStack(s);
+        s.push({ 0,0 });
+        break;
+    }
+    case 2: {
+        Vwalls.clear();
+        int randRow = rand() % NodesPerColumn;
+        int randColumn = rand() % NodesPerRow;
+        nodes[randRow][randColumn].visited = true;
+        addWall(Vwalls, randRow, randColumn, nodes);
+        break;
+    }
+    case 3:{
+        // initalize kruskal here if you want something outside the loop 
+        break;
+    }
+    default:
+        break;
+          
+    }
+
+}
+
+
+
+int main()
+{
+ 
+    float innerSize = nodesToWall * NODE_SIZE;
+    float wallWidth = (NODE_SIZE - innerSize) / 2;
+    NodesPerColumn = SCREEN_HEIGHT / NODE_SIZE;
+    NodesPerRow = 2 * (SCREEN_WIDTH / 3.0) / NODE_SIZE;
+
+
+    int usedAlgorithm = 1;
+    vector<vector<Node>>nodes(NodesPerColumn, vector<Node>(NodesPerRow));
+
+    initializeAlgorithms(usedAlgorithm, nodes);
+
     bool isFinishedCreatingMaze = false;
+
+
+    
+    srand(static_cast<unsigned>(time(0)));
+
+    
+    
+
+
+    
+    
+    
+
+    ButtonView buttonBackTracking(10,50,73,25,1,"Backtracking");
+    ButtonView buttonPrim(90, 50, 70, 25, 2, "Prim");
+
+    sf::Image redCircle;
+    redCircle.loadFromFile("red_circle.png");
+    
+     
+
+    
+
+    
+
+
+    
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML Rectangle Example");
 
@@ -255,12 +297,10 @@ int main()
     texture.loadFromImage(redCircle);
     sprite.setTexture(texture);
     int currentX = 0, currentY = 0;
-    int randRow = rand() % NodesPerColumn;
-    int randColumn = rand() % NodesPerRow;
-    nodes[randRow][randColumn].visited = true;
-    addWall(Vwalls, randRow, randColumn, nodes);
-    // nodes[0][0].visited = 1;
-     //recurse(0, 0, nodes);
+
+    //for prim algorithm 
+    ///
+     
     while (window.isOpen())
     {
         sf::Event event;
@@ -270,6 +310,16 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
 
+            
+            int x1 =buttonBackTracking.handleEvent(event);
+            int x2 = buttonPrim.handleEvent(event);
+            if (x1||x2) {
+                currentX = 0;
+                currentY = 0;
+                usedAlgorithm = x1|x2;
+                isFinishedCreatingMaze = false;
+                initializeAlgorithms(usedAlgorithm,nodes);
+            }
 
             if (isFinishedCreatingMaze) {
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
@@ -277,7 +327,7 @@ int main()
                     if (!nodes[currentX][currentY].walls[1] && possible(currentX - 1, currentY)) {
 
                         currentX -= 1;
-                    }
+                        }
                     cout << currentX << " " << currentY << '\n';
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
@@ -306,16 +356,23 @@ int main()
             }
         }
 
+        buttonBackTracking.update();
+        buttonPrim.update();
         window.clear(sf::Color::Black);
+
+        buttonBackTracking.draw(window);
+        buttonPrim.draw(window);
+
         if (usedAlgorithm == 1) {
 
+            
             if (s.empty()) {
                 cX = cY = -1;
                 isFinishedCreatingMaze = true;
 
             }
             else {
-                backTracking2(s, nodes);
+                backTracking(s, nodes);
             }
         }
         else {
@@ -323,53 +380,35 @@ int main()
                 cX = -1;
                 cY = -1;
                 if (!Vwalls.empty()) {
-                    int randwallIndex = rand() % Vwalls.size();
-                    wall randwall = Vwalls[randwallIndex];
-                    bool opt1 = (randwall.node1)->visited && !(randwall.node2)->visited;
-                    bool opt2 = !(randwall.node1)->visited && (randwall.node2)->visited;
-                    if (opt1 || opt2) {
-                        int node1Row = (randwall.node1)->row;
-                        int node2Row = (randwall.node2)->row;
-                        int node1Column = (randwall.node1)->column;
-                        int node2Column = (randwall.node2)->column;
-                        int r = getDirection(node2Column - node1Column, node2Row - node1Row);
-                        joinNodes((randwall.node1)->row, (randwall.node1)->column, (randwall.node2)->row, (randwall.node2)->column, r, nodes);
-                        if (opt1) {
-                            (randwall.node2)->visited = true;
-                            addWall(Vwalls, (randwall.node2)->row, (randwall.node2)->column, nodes);
-                        }
-                        else {
-                            (randwall.node1)->visited = true;
-                            addWall(Vwalls, (randwall.node1)->row, (randwall.node1)->column, nodes);
-                        }
-                    }
-                    Vwalls.erase(Vwalls.begin() + randwallIndex);
+                    prim(Vwalls,nodes);
                 }
                 else {
                     isFinishedCreatingMaze = true;
                 }
+            }else {
+
+                if (usedAlgorithm == 3) {
+                    // kurskal 
+
+
+                }
+
+
             }
 
         }
 
 
 
-
-        sprite.setScale((NODE_SIZE * nodesToWall) / 512.0, (NODE_SIZE * nodesToWall) / 512.0);
-
-        // 512X=(nodeSize*ratio)
-        sprite.setPosition(sf::Vector2f(currentY * NODE_SIZE + wallWidth, currentX * NODE_SIZE + wallWidth));
-
-
-
-
-
-
-
-
         drawNodes(window, nodes, cX, cY);
-        if (isFinishedCreatingMaze)
+
+
+        if (isFinishedCreatingMaze) {
+            sprite.setScale((NODE_SIZE * nodesToWall) / 512.0, (NODE_SIZE * nodesToWall) / 512.0);
+            sprite.setPosition(sf::Vector2f(currentY * NODE_SIZE + wallWidth + (SCREEN_WIDTH / 3.0), currentX * NODE_SIZE + wallWidth));
+
             window.draw(sprite);
+        }
 
 
 
