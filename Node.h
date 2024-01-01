@@ -16,14 +16,17 @@ class Node
 {
 
 public:
+	bool operator<(const Node& other) const;
+
 	vector<bool>walls;
 	int row;
 	int column;
 
+	int group;
 	bool visited;
+	bool visited1;
 	int parent_i, parent_j;
 	double f, g, h;
-	int group;
 
 	sf::Color color;
 	sf::Color wallColor;

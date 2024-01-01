@@ -1,5 +1,11 @@
 #include "Node.h"
 
+
+bool Node::operator<(const Node& other)const 
+{
+	return row < other.row || (row == other.row && column < other.column);
+}
+
 //0 left 
 //1 top
 //2 right
@@ -69,9 +75,9 @@ Node::Node(int i, int j) {
 	this->row = i;
 	walls = vector<bool>(4, true);
 	visited = false;
-
-	color = sf::Color::White;
+	visited1 = false;
 	group = 0;
+	color = sf::Color::White;
 	wallColor = sf::Color::White;
 
 }
@@ -79,12 +85,12 @@ Node::Node(int i, int j) {
 Node::Node()
 {
 
-
+	group = 0;
 	row = 0;
 	column = 0;
 	walls = vector<bool>(4, true);
 	visited = false;
-	group = 0;
+
 	color = sf::Color::White;
 	wallColor = sf::Color::White;
-}	
+}

@@ -2,6 +2,7 @@
 #include <set>
 #include<random>
 #include"Node.h";
+#include<map>
 #include "ButtonView.h"
 #include<ctime>
 
@@ -17,12 +18,47 @@ typedef pair<double, pair<int, int> > pPair;
 int cX = 0;
 int cY = 0;
 stack<pair<int, int>>s;
+
+//dfs
+map<Node, Node>path;
+stack<Node*>st;
+map<Node, Node>path1;
+//
 vector <wall> Vwalls;
+
 set<pPair> openList;
 vector<int>perm = { 0,1,2,3 };
 int moveX[] = { -1,0,1,0 };
 int moveY[] = { 0,-1,0,1 };
 
+
+
+
+void joinNodes(int i, int j, int newI, int newJ, int r, vector<vector<Node>>& nodes) {
+
+
+    nodes[newI][newJ].visited = true;
+    nodes[i][j].walls[r] = 0;
+    nodes[i][j].visited = true;
+    nodes[newI][newJ].walls[(r + 2) % 4] = 0;
+
+
+
+}
+
+int getDirection(int x, int y) {
+
+    if (x == -1 && y == 0)
+        return 0;
+    if (x == 0 && y == -1)
+        return 1;
+    if (x == 1 && y == 0)
+        return 2;
+    if (x == 0 && y == 1)
+        return 3;
+
+
+}
 
 bool possible(int i, int j) {
 
@@ -33,26 +69,17 @@ bool possible(int i, int j) {
 
 }
 
-void addWall(vector<wall>& Vwall, int row, int column, vector<vector<Node>>& v,int algo) {
-    int i=0;
-    if (algo==3)
-        i = 2;
+void mergeGroups(vector<vector<Node>>& nodes, int g1, int g2) {
 
-    for (; i < 4; i++) {
-        wall w;
-        w.node1 = &(v[row][column]);
-        int neiRow = row + moveX[i];
-        int neiColumn = column + moveY[i];
-        if (possible(neiRow, neiColumn)) {
-            w.node2 = &(v[neiRow][neiColumn]);
-            Vwall.push_back(w);
+    for (int i = 0; i < NodesPerColumn; i++) {
+        for (int j = 0; j < NodesPerRow; j++) {
+            if (nodes[i][j].group == g2) {
+                nodes[i][j].group = g1;
+            }
         }
     }
 
-
 }
-
-
 
 
 
@@ -236,6 +263,32 @@ bool  aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest, vector<vecto
     return foundDest;
 }
 
+void Kruskal(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    std::shuffle(Vwalls.begin(), Vwalls.end(), g);
+
+    int random = 0;
+    wall* WW = &Vwalls[random];
+    Node* node1 = WW->node1;
+    Node* node2 = WW->node2;
+    int node1Row = (WW->node1)->row;
+    int node2Row = (WW->node2)->row;
+    int node1Column = (WW->node1)->column;
+    int node2Column = (WW->node2)->column;
+    int r = getDirection(node2Column - node1Column, node2Row - node1Row);
+
+    if (node1->group != node2->group) {
+
+        joinNodes(node1Row, node1Column, node2Row, node2Column, r, nodes);
+        mergeGroups(nodes, node1->group, node2->group);
+        cout << node1->group << " " << node2->group << endl;
+    }
+    Vwalls.erase(Vwalls.begin() + random);
+}
+
+
 
 
 
@@ -270,30 +323,26 @@ void drawNodes(sf::RenderWindow& window, vector<vector<Node>>v, int cX, int cY) 
 
 
 
-int getDirection(int x, int y) {
 
-    if (x == -1 && y == 0)
-        return 0;
-    if (x == 0 && y == -1)
-        return 1;
-    if (x == 1 && y == 0)
-        return 2;
-    if (x == 0 && y == 1)
-        return 3;
+void addWall(vector<wall>& Vwall, int row, int column, vector<vector<Node>>& v, int algo) {
+    int i = 0;
+    if (algo == 3)
+        i = 2;
 
-
-}
-
-void joinNodes(int i, int j, int newI, int newJ, int r, vector<vector<Node>>& nodes) {
-
-    nodes[i][j].visited = true;
-    nodes[newI][newJ].visited = true;
-    nodes[i][j].walls[r] = 0;
-    nodes[newI][newJ].walls[(r + 2) % 4] = 0;
-
+    for (; i < 4; i++) {
+        wall w;
+        w.node1 = &(v[row][column]);
+        int neiRow = row + moveX[i];
+        int neiColumn = column + moveY[i];
+        if (possible(neiRow, neiColumn)) {
+            w.node2 = &(v[neiRow][neiColumn]);
+            Vwall.push_back(w);
+        }
+    }
 
 
 }
+
 
 
 void backTracking(stack<pair<int, int>>& s, vector<vector<Node>>& nodes) {
@@ -362,12 +411,77 @@ void backTracking(stack<pair<int, int>>& s, vector<vector<Node>>& nodes) {
     }
 
 }
-void solveWithDfs() {
 
 
+
+int h = 0;
+
+bool solveWithDfs(vector<vector<Node>>& nodes) {
+
+        cout<<h++<<"\n";
+    
+        bool found = false;
+    
+        //0 = up
+        //1 = left
+        //2 = bottom 
+        //3 = right
+        Node*u = st.top();
+        Node *child;
+        u->color = sf::Color::Green;
+        u->wallColor = sf::Color::Green;
+
+        st.pop();
+        if (u->column == NodesPerRow - 1 && u->row == NodesPerRow - 1) {
+            found = true;
+            tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
+            for (int i = 0; i < NodesPerColumn; i++) {
+                for (int j = 0; j < NodesPerRow; j++) {
+
+                    nodes[i][j].color = sf::Color::White;
+                    nodes[i][j].wallColor= sf::Color::White;
+                }
+
+
+            }
+            return true;
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            if (possible(u->row + moveX[i], u->column + moveY[i]) && isUnBlocked(nodes, u->row + moveX[i], u->column + moveY[i], i)) {
+                child = &nodes[u->row + moveX[i]][u->column + moveY[i]];
+                if (child->visited1)continue;
+                st.push(child);
+                child->visited1 = true;
+                child->parent_i = u->row;
+                child->parent_j = u->column;
+
+
+
+            }
+
+        }
+        
+        Node start, end;
+        start.row = 0, start.column = 0;
+        end.row = NodesPerColumn - 1, end.column = NodesPerRow - 1;
+        while ((start.row != end.row) && (start.column != end.column)) {
+            path1[path[end]] = end;
+            end = path[end];
+        }
+
+
+
+   
+        if (found) {
+            tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
+            return true;
+        }
+
+        sf::sleep(sf::milliseconds(50));
+    return false;
 
 }
-
 
 void prim(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
     int randwallIndex = rand() % Vwalls.size();
@@ -383,15 +497,16 @@ void prim(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
         joinNodes((randwall.node1)->row, (randwall.node1)->column, (randwall.node2)->row, (randwall.node2)->column, r, nodes);
         if (opt1) {
             (randwall.node2)->visited = true;
-            addWall(Vwalls, (randwall.node2)->row, (randwall.node2)->column, nodes,2);
+            addWall(Vwalls, (randwall.node2)->row, (randwall.node2)->column, nodes, 2);
         }
         else {
             (randwall.node1)->visited = true;
-            addWall(Vwalls, (randwall.node1)->row, (randwall.node1)->column, nodes,2);
+            addWall(Vwalls, (randwall.node1)->row, (randwall.node1)->column, nodes, 2);
         }
     }
     Vwalls.erase(Vwalls.begin() + randwallIndex);
 }
+
 
 
 void nodesInitialization(vector<vector<Node>>& nodes) {
@@ -399,7 +514,12 @@ void nodesInitialization(vector<vector<Node>>& nodes) {
     for (int i = 0; i < NodesPerColumn; i++) {
         for (int j = 0; j < NodesPerRow; j++) {
             nodes[i][j] = Node(i, j);
-
+            
+            nodes[i][j].f = FLT_MAX;
+            nodes[i][j].g = FLT_MAX;
+            nodes[i][j].h = FLT_MAX;
+            nodes[i][j].parent_i = -1;
+            nodes[i][j].parent_j = -1;
         }
     }
 
@@ -413,42 +533,6 @@ void clearStack(stack<pair<int, int>>& s) {
     }
 
 }
-void mergeGroups(vector<vector<Node>>& nodes, int g1, int g2) {
-
-    for (int i = 0; i < NodesPerColumn; i++) {
-        for (int j = 0; j < NodesPerRow; j++) {
-            if (nodes[i][j].group == g2) {
-                nodes[i][j].group = g1;
-            }
-        }
-    }
-
-}
-void Kruskal(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
-    std::random_device rd;
-    std::mt19937 g(rd());
-
-    std::shuffle(Vwalls.begin(), Vwalls.end(), g);
-
-    int random = 0;
-    wall* WW = &Vwalls[random];
-    Node* node1 = WW->node1;
-    Node* node2 = WW->node2;
-    int node1Row = (WW->node1)->row;
-    int node2Row = (WW->node2)->row;
-    int node1Column = (WW->node1)->column;
-    int node2Column = (WW->node2)->column;
-    int r = getDirection(node2Column - node1Column, node2Row - node1Row);
-
-    if (node1->group != node2->group) {
-
-        joinNodes(node1Row, node1Column, node2Row, node2Column, r, nodes);
-        mergeGroups(nodes, node1->group, node2->group);
-        cout << node1->group << " " << node2->group << endl;
-    }
-    Vwalls.erase(Vwalls.begin() + random);
-}
-
 void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
 
     nodesInitialization(nodes);
@@ -466,7 +550,7 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
         int randRow = rand() % NodesPerColumn;
         int randColumn = rand() % NodesPerRow;
         nodes[randRow][randColumn].visited = true;
-        addWall(Vwalls, randRow, randColumn, nodes,2);
+        addWall(Vwalls, randRow, randColumn, nodes, 2);
         break;
     }
     case 3: {
@@ -478,8 +562,8 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
             }
         }
         for (int row = 0; row < NodesPerColumn; row++) {
-            for (int col = 0; col < NodesPerRow; col++) {   //adding all the walls into vector Vwalls
-                addWall(Vwalls, row, col, nodes,3);
+            for (int col = 0; col < NodesPerRow; col++) {   
+                addWall(Vwalls, row, col, nodes, 3);
             }
         }
         break;
@@ -515,7 +599,9 @@ int main()
     srand(static_cast<unsigned>(time(0)));
 
 
+    Node *v = &nodes[0][0];
 
+    st.push(v);
 
 
     // Create a closed list and initialise it to false which
@@ -536,18 +622,7 @@ int main()
     // 'f' as 0
     openList.insert(make_pair(0.0, make_pair(0, 0)));
 
-    for (int i = 0; i < NodesPerColumn; i++) {
-        for (int j = 0; j < NodesPerRow; j++) {
-            nodes[i][j].row = i;
-            nodes[i][j].column = j;
-            nodes[i][j].f = FLT_MAX;
-            nodes[i][j].g = FLT_MAX;
-            nodes[i][j].h = FLT_MAX;
-            nodes[i][j].parent_i = -1;
-            nodes[i][j].parent_j = -1;
-        }
-    }
-
+    
     Pair src = make_pair(0, 0);
     Pair dest = make_pair(NodesPerColumn - 1, NodesPerRow - 1);
 
@@ -565,7 +640,8 @@ int main()
 
     ButtonView buttonBackTracking(10, 50, 73, 25, 1, "Backtracking");
     ButtonView buttonPrim(90, 50, 70, 25, 2, "Prim");
-    ButtonView buttonKruskal(70, 80, 70, 25, 2, "Kruskal");
+    ButtonView buttonKruskal(70, 80, 70, 25, 3, "Kruskal");
+
 
     sf::Image redCircle;
     redCircle.loadFromFile("red_circle.png");
@@ -600,14 +676,13 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
 
-
             int x1 = buttonBackTracking.handleEvent(event);
             int x2 = buttonPrim.handleEvent(event);
             int x3 = buttonKruskal.handleEvent(event);
-            if (x1 || x2||x3) {
+            if (x1 || x2 || x3) {
                 currentX = 0;
                 currentY = 0;
-                usedAlgorithm = x1 | x2|x3;
+                usedAlgorithm = x1 | x2 | x3;
                 isFinishedCreatingMaze = false;
                 initializeAlgorithms(usedAlgorithm, nodes);
             }
@@ -646,7 +721,6 @@ int main()
 
             }
         }
-
         buttonBackTracking.update();
         buttonPrim.update();
         buttonKruskal.update();
@@ -711,18 +785,17 @@ int main()
 
             if (!startingSolving) {
 
-
-                if (openList.empty() == false) {
-                    bool ans = aStarSearch(nodes, src, dest, closedList);
-                    if (ans)
-                        startingSolving = false;
-
+                
+                v->visited1 = true;
+               if(!st.empty()) {
+                    bool found=solveWithDfs(nodes);
+                    if (found)
+                        startingSolving = true;
                 }
                 else {
-                    startingSolving = false;
+                    startingSolving = true;
                 }
-
-
+                
             }
 
         }
