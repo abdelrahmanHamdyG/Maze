@@ -14,6 +14,7 @@ int NodesPerRow;
 
 typedef pair<int, int> Pair;
 typedef pair<double, pair<int, int> > pPair;
+vector<vector<bool>>closedList;
 
 int cX = 0;
 int cY = 0;
@@ -478,7 +479,7 @@ bool solveWithDfs(vector<vector<Node>>& nodes) {
             return true;
         }
 
-        sf::sleep(sf::milliseconds(10));
+        sf::sleep(sf::milliseconds(50));
     return false;
 
 }
@@ -583,10 +584,51 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
 
 }
 
+void initializeSolvingAlgorithms(int usedSolvingAlgorithm,vector<vector<Node>>&nodes) {
+
+
+    switch (usedSolvingAlgorithm) {
+    case 1: {
+
+
+        nodes[0][0].f = 0.0;
+        nodes[0][0].g = 0.0;
+        nodes[0][0].h = 0.0;
+        nodes[0][0].parent_i = 0;
+        nodes[0][0].parent_j = 0;
+        openList.clear();
+        openList.insert(make_pair(0.0, make_pair(0, 0)));
+        closedList= vector<vector<bool>>(NodesPerColumn, vector<bool>(NodesPerRow, false));
+
+        break;
+    }
+    case 2: {
+        nodes[0][0].f = 0.0;
+        nodes[0][0].g = 0.0;
+        nodes[0][0].h = 0.0;
+        nodes[0][0].parent_i = 0;
+        nodes[0][0].parent_j = 0;
+        nodes[0][0].visited1 = true;
+        st.push(&nodes[0][0]);
+        path.clear();
+        path1.clear();
+        break;
+    }
+
+    default:
+        break;
+
+    }
+
+
+
+}
+
 
 
 int main()
 {
+
 
     float innerSize = nodesToWall * NODE_SIZE;
     float wallWidth = (NODE_SIZE - innerSize) / 2;
@@ -594,10 +636,14 @@ int main()
     NodesPerColumn = SCREEN_HEIGHT / NODE_SIZE;
     NodesPerRow = 2 * (SCREEN_WIDTH / 3.0) / NODE_SIZE;
 
-    int usedAlgorithm = 3;
+    int usedAlgorithm = 1;
+    int usedSolvingAlgorithm = 2;
     vector<vector<Node>>nodes(NodesPerColumn, vector<Node>(NodesPerRow));
 
+    
+
     initializeAlgorithms(usedAlgorithm, nodes);
+    initializeSolvingAlgorithms(usedSolvingAlgorithm, nodes);
 
     bool isFinishedCreatingMaze = false;
 
@@ -606,38 +652,11 @@ int main()
     srand(static_cast<unsigned>(time(0)));
 
 
-    Node *v = &nodes[0][0];
 
-    st.push(v);
-
-
-    // Create a closed list and initialise it to false which
-    // means that no cell has been included yet This closed
-    // list is implemented as a boolean 2D array
-    vector<vector<bool>>closedList(NodesPerColumn, vector<bool>(NodesPerRow, false));
-
-
-    // Declare a 2D array of structure to hold the details
-    // of that cell
-    //vector<vector<Node>>nodes1(NodesPerColumn,vector<Node>(NodesPerRow));
-
-
-
-
-
-    // Put the starting cell on the open list and set its
-    // 'f' as 0
-    openList.insert(make_pair(0.0, make_pair(0, 0)));
 
     
     Pair src = make_pair(0, 0);
     Pair dest = make_pair(NodesPerColumn - 1, NodesPerRow - 1);
-
-    nodes[0][0].f = 0.0;
-    nodes[0][0].g = 0.0;
-    nodes[0][0].h = 0.0;
-    nodes[0][0].parent_i = 0;
-    nodes[0][0].parent_j = 0;
 
 
 
@@ -692,15 +711,9 @@ int main()
                 usedAlgorithm = x1 | x2 | x3;
                 isFinishedCreatingMaze = false;
                 initializeAlgorithms(usedAlgorithm, nodes);
+                initializeSolvingAlgorithms(usedSolvingAlgorithm, nodes);
                 startingSolving = false;
-                nodes[0][0].f = 0.0;
-                nodes[0][0].g = 0.0;
-                nodes[0][0].h = 0.0;
-                nodes[0][0].parent_i = 0;
-                nodes[0][0].parent_j = 0;
-                st.push(&nodes[0][0]);
-                path.clear();
-                path1.clear();
+               
             }
 
             if (isFinishedCreatingMaze) {
@@ -802,22 +815,52 @@ int main()
             if (!startingSolving) {
 
                 
-                v->visited1 = true;
-               if(!st.empty()) {
-                    bool found=solveWithDfs(nodes);
-                    if (found) {
-                        clearStack(st);
+
+                if (usedSolvingAlgorithm == 2) {
+                    if (!st.empty()) {
+                        bool found = solveWithDfs(nodes);
+                        if (found) {
+                            clearStack(st);
+                            startingSolving = true;
+                        }
+                    }
+                    else {
+
                         startingSolving = true;
                     }
+
                 }
+
+
                 else {
 
-                    startingSolving = true;
-                }
-                
-            }
 
+
+                    if (usedSolvingAlgorithm == 1) {
+                        if (!openList.empty()) {
+
+                            bool found = aStarSearch(nodes, src, dest, closedList);
+                            if (found) {
+                                clearStack(s);
+                                startingSolving = true;
+                            }
+
+                        }
+                        else {
+                            startingSolving = true;
+                        }
+
+
+
+                    }
+                }
+            }
         }
+        
+
+
+
+        
 
         drawNodes(window, nodes, cX, cY);
 
