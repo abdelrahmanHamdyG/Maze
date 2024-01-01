@@ -256,7 +256,7 @@ bool  aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest, vector<vecto
 
     }
 
-    sf::sleep(sf::milliseconds(60));
+    sf::sleep(sf::milliseconds(10));
 
 
 
@@ -434,16 +434,18 @@ bool solveWithDfs(vector<vector<Node>>& nodes) {
         st.pop();
         if (u->column == NodesPerRow - 1 && u->row == NodesPerRow - 1) {
             found = true;
-            tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
             for (int i = 0; i < NodesPerColumn; i++) {
                 for (int j = 0; j < NodesPerRow; j++) {
 
                     nodes[i][j].color = sf::Color::White;
-                    nodes[i][j].wallColor= sf::Color::White;
+                    nodes[i][j].wallColor = sf::Color::White;
                 }
 
 
+
+            
             }
+            tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
             return true;
         }
         for (int i = 0; i < 4; i++)
@@ -478,7 +480,7 @@ bool solveWithDfs(vector<vector<Node>>& nodes) {
             return true;
         }
 
-        sf::sleep(sf::milliseconds(50));
+        sf::sleep(sf::milliseconds(10));
     return false;
 
 }
@@ -774,7 +776,7 @@ int main()
 
 
 
-        drawNodes(window, nodes, cX, cY);
+        
 
 
         if (isFinishedCreatingMaze) {
@@ -800,7 +802,7 @@ int main()
 
         }
 
-
+        drawNodes(window, nodes, cX, cY);
 
         window.display();
 
