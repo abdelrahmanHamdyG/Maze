@@ -439,11 +439,9 @@ bool solveWithDfs(vector<vector<Node>>& nodes) {
 
                     nodes[i][j].color = sf::Color::White;
                     nodes[i][j].wallColor = sf::Color::White;
+                    nodes[i][j].visited1 = false;
                 }
 
-
-
-            
             }
             tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
             return true;
@@ -529,6 +527,13 @@ void nodesInitialization(vector<vector<Node>>& nodes) {
 
 
 void clearStack(stack<pair<int, int>>& s) {
+
+    while (!s.empty()) {
+        s.pop();
+    }
+
+}
+void clearStack(stack<Node*>& s) {
 
     while (!s.empty()) {
         s.pop();
@@ -687,6 +692,15 @@ int main()
                 usedAlgorithm = x1 | x2 | x3;
                 isFinishedCreatingMaze = false;
                 initializeAlgorithms(usedAlgorithm, nodes);
+                startingSolving = false;
+                nodes[0][0].f = 0.0;
+                nodes[0][0].g = 0.0;
+                nodes[0][0].h = 0.0;
+                nodes[0][0].parent_i = 0;
+                nodes[0][0].parent_j = 0;
+                st.push(&nodes[0][0]);
+                path.clear();
+                path1.clear();
             }
 
             if (isFinishedCreatingMaze) {
@@ -791,10 +805,13 @@ int main()
                 v->visited1 = true;
                if(!st.empty()) {
                     bool found=solveWithDfs(nodes);
-                    if (found)
+                    if (found) {
+                        clearStack(st);
                         startingSolving = true;
+                    }
                 }
                 else {
+
                     startingSolving = true;
                 }
                 
