@@ -8,9 +8,9 @@
 
 
 using namespace std;
-const int SCREEN_WIDTH = 600;
-const int SCREEN_HEIGHT = 400;
-const int NODE_SIZE = 20;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1080;
+
 const float nodesToWall = 0.8;
 class Node
 {
@@ -31,7 +31,7 @@ public:
 	sf::Color color;
 	sf::Color wallColor;
 
-	void drawNode(sf::RenderWindow& window);
+	void drawNode(sf::RenderWindow& window, int NODE_SIZE);
 
 	Node(int row, int column);
 	Node();

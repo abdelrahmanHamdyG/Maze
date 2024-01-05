@@ -10,11 +10,12 @@
 int NodesPerColumn;
 int NodesPerRow;
 
-
+int options[3];
 
 typedef pair<int, int> Pair;
 typedef pair<double, pair<int, int> > pPair;
 vector<vector<bool>>closedList;
+queue<Node*>q;
 
 int cX = 0;
 int cY = 0;
@@ -33,7 +34,29 @@ int moveX[] = { -1,0,1,0 };
 int moveY[] = { 0,-1,0,1 };
 
 
+pair<int, int> getPos(float posx, float posy) {
+    int i = -1, j = -1;
+    if (posx > 620 && posx < 1027) {
+        i = 0;
+    }
+    if (posx > 1114 && posx < 1440) {
+        i = 1;
+    }
+    if (posx > 1569 && posx < 1755) {
+        i = 2;
+    }
+    if (posy > 290 && posy < 362) {
+        j = 0;
+    }
+    if (posy > 524 && posy < 610) {
+        j = 1;
+    }
+    if (posy > 760 && posy < 850) {
+        j = 2;
+    }
 
+    return { j,i };
+}
 
 void joinNodes(int i, int j, int newI, int newJ, int r, vector<vector<Node>>& nodes) {
 
@@ -257,7 +280,7 @@ bool  aStarSearch(vector<vector<Node>>& nodes, Pair src, Pair dest, vector<vecto
 
     }
 
-    sf::sleep(sf::milliseconds(10));
+    sf::sleep(sf::milliseconds(15));
 
 
 
@@ -296,7 +319,7 @@ void Kruskal(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
 
 
 
-void drawNodes(sf::RenderWindow& window, vector<vector<Node>>v, int cX, int cY) {
+void drawNodes(sf::RenderWindow& window, vector<vector<Node>>v, int cX, int cY, int NODE_SIZE) {
 
     if (cX != -1 && cY != -1) {
         v[cX][cY].color = sf::Color::Red;
@@ -308,7 +331,7 @@ void drawNodes(sf::RenderWindow& window, vector<vector<Node>>v, int cX, int cY) 
     for (int i = 0; i < v.size(); i++) {
         for (int j = 0; j < v[0].size(); j++) {
 
-            v[i][j].drawNode(window);
+            v[i][j].drawNode(window, NODE_SIZE);
         }
 
     }
@@ -344,7 +367,61 @@ void addWall(vector<wall>& Vwall, int row, int column, vector<vector<Node>>& v, 
 
 }
 
+bool solveWithBfs(vector<vector<Node>>& nodes) {
 
+    Node* child;
+    bool found = false;
+
+
+
+    Node* u = q.front();
+    q.pop();
+
+    u->color = sf::Color::Green;
+    u->wallColor = sf::Color::Green;
+    if (u->column == NodesPerRow - 1 && u->row == NodesPerColumn - 1)
+    {
+        found = true;
+        for (int i = 0; i < NodesPerColumn; i++) {
+            for (int j = 0; j < NodesPerRow; j++) {
+
+                nodes[i][j].color = sf::Color::White;
+                nodes[i][j].wallColor = sf::Color::White;
+                nodes[i][j].visited1 = false;
+            }
+
+        }
+        tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
+        return true;
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (possible(u->row + moveX[i], u->column + moveY[i]) && isUnBlocked(nodes, u->row + moveX[i], u->column + moveY[i], i)) {
+            child = &nodes[u->row + moveX[i]][u->column + moveY[i]];
+            if (child->visited1)continue;
+            q.push(child);
+            child->visited1 = true;
+            child->parent_i = u->row;
+            child->parent_j = u->column;
+
+
+
+        }
+
+    }
+
+
+
+
+    if (found) {
+        tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
+        return true;
+    }
+
+    sf::sleep(sf::milliseconds(15));
+    return false;
+}
 
 void backTracking(stack<pair<int, int>>& s, vector<vector<Node>>& nodes) {
 
@@ -419,67 +496,67 @@ int h = 0;
 
 bool solveWithDfs(vector<vector<Node>>& nodes) {
 
-        cout<<h++<<"\n";
-    
-        bool found = false;
-    
-        //0 = up
-        //1 = left
-        //2 = bottom 
-        //3 = right
-        Node*u = st.top();
-        Node *child;
-        u->color = sf::Color::Green;
-        u->wallColor = sf::Color::Green;
+    cout << h++ << "\n";
 
-        st.pop();
-        if (u->column == NodesPerRow - 1 && u->row == NodesPerRow - 1) {
-            found = true;
-            for (int i = 0; i < NodesPerColumn; i++) {
-                for (int j = 0; j < NodesPerRow; j++) {
+    bool found = false;
 
-                    nodes[i][j].color = sf::Color::White;
-                    nodes[i][j].wallColor = sf::Color::White;
-                    nodes[i][j].visited1 = false;
-                }
+    //0 = up
+    //1 = left
+    //2 = bottom 
+    //3 = right
+    Node* u = st.top();
+    Node* child;
+    u->color = sf::Color::Green;
+    u->wallColor = sf::Color::Green;
 
-            }
-            tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
-            return true;
-        }
-        for (int i = 0; i < 4; i++)
-        {
-            if (possible(u->row + moveX[i], u->column + moveY[i]) && isUnBlocked(nodes, u->row + moveX[i], u->column + moveY[i], i)) {
-                child = &nodes[u->row + moveX[i]][u->column + moveY[i]];
-                if (child->visited1)continue;
-                st.push(child);
-                child->visited1 = true;
-                child->parent_i = u->row;
-                child->parent_j = u->column;
+    st.pop();
+    if (u->column == NodesPerRow - 1 && u->row == NodesPerColumn - 1) {
+        found = true;
+        for (int i = 0; i < NodesPerColumn; i++) {
+            for (int j = 0; j < NodesPerRow; j++) {
 
-
-
+                nodes[i][j].color = sf::Color::White;
+                nodes[i][j].wallColor = sf::Color::White;
+                nodes[i][j].visited1 = false;
             }
 
         }
-        
-        Node start, end;
-        start.row = 0, start.column = 0;
-        end.row = NodesPerColumn - 1, end.column = NodesPerRow - 1;
-        while ((start.row != end.row) && (start.column != end.column)) {
-            path1[path[end]] = end;
-            end = path[end];
+        tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
+        return true;
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        if (possible(u->row + moveX[i], u->column + moveY[i]) && isUnBlocked(nodes, u->row + moveX[i], u->column + moveY[i], i)) {
+            child = &nodes[u->row + moveX[i]][u->column + moveY[i]];
+            if (child->visited1)continue;
+            st.push(child);
+            child->visited1 = true;
+            child->parent_i = u->row;
+            child->parent_j = u->column;
+
+
+
         }
 
+    }
+
+    Node start, end;
+    start.row = 0, start.column = 0;
+    end.row = NodesPerColumn - 1, end.column = NodesPerRow - 1;
+    while ((start.row != end.row) && (start.column != end.column)) {
+        path1[path[end]] = end;
+        end = path[end];
+    }
 
 
-   
-        if (found) {
-            tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
-            return true;
-        }
 
-        sf::sleep(sf::milliseconds(50));
+
+    if (found) {
+        tracePath(nodes, { NodesPerColumn - 1,NodesPerRow - 1 });
+        return true;
+    }
+
+    sf::sleep(sf::milliseconds(15));
     return false;
 
 }
@@ -515,7 +592,7 @@ void nodesInitialization(vector<vector<Node>>& nodes) {
     for (int i = 0; i < NodesPerColumn; i++) {
         for (int j = 0; j < NodesPerRow; j++) {
             nodes[i][j] = Node(i, j);
-            
+
             nodes[i][j].f = FLT_MAX;
             nodes[i][j].g = FLT_MAX;
             nodes[i][j].h = FLT_MAX;
@@ -541,6 +618,14 @@ void clearStack(stack<Node*>& s) {
     }
 
 }
+void clearQueue(queue<Node*>& q) {
+
+    while (!q.empty()) {
+        q.pop();
+    }
+
+
+}
 void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
 
     nodesInitialization(nodes);
@@ -553,7 +638,7 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
         s.push({ 0,0 });
         break;
     }
-    case 2: {
+    case 3: {
         Vwalls.clear();
         int randRow = rand() % NodesPerColumn;
         int randColumn = rand() % NodesPerRow;
@@ -561,7 +646,7 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
         addWall(Vwalls, randRow, randColumn, nodes, 2);
         break;
     }
-    case 3: {
+    case 2: {
         Vwalls.clear();
         int c = 0;
         for (int i = 0; i < NodesPerColumn; i++) {
@@ -570,7 +655,7 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
             }
         }
         for (int row = 0; row < NodesPerColumn; row++) {
-            for (int col = 0; col < NodesPerRow; col++) {   
+            for (int col = 0; col < NodesPerRow; col++) {
                 addWall(Vwalls, row, col, nodes, 3);
             }
         }
@@ -584,7 +669,7 @@ void initializeAlgorithms(int usedAlgorithm, vector<vector<Node>>& nodes) {
 
 }
 
-void initializeSolvingAlgorithms(int usedSolvingAlgorithm,vector<vector<Node>>&nodes) {
+void initializeSolvingAlgorithms(int usedSolvingAlgorithm, vector<vector<Node>>& nodes) {
 
 
     switch (usedSolvingAlgorithm) {
@@ -598,11 +683,32 @@ void initializeSolvingAlgorithms(int usedSolvingAlgorithm,vector<vector<Node>>&n
         nodes[0][0].parent_j = 0;
         openList.clear();
         openList.insert(make_pair(0.0, make_pair(0, 0)));
-        closedList= vector<vector<bool>>(NodesPerColumn, vector<bool>(NodesPerRow, false));
+        closedList = vector<vector<bool>>(NodesPerColumn, vector<bool>(NodesPerRow, false));
 
         break;
     }
+
     case 2: {
+        //bfs
+
+        clearQueue(q);
+        nodes[0][0].f = 0.0;
+        nodes[0][0].g = 0.0;
+        nodes[0][0].h = 0.0;
+        nodes[0][0].parent_i = 0;
+        nodes[0][0].parent_j = 0;
+        nodes[0][0].visited1 = true;
+        q.push(&nodes[0][0]);
+        path.clear();
+        path1.clear();
+        break;
+
+
+    }
+    case 3: {
+        //dfs
+        // temporary
+        clearStack(st);
         nodes[0][0].f = 0.0;
         nodes[0][0].g = 0.0;
         nodes[0][0].h = 0.0;
@@ -614,6 +720,8 @@ void initializeSolvingAlgorithms(int usedSolvingAlgorithm,vector<vector<Node>>&n
         path1.clear();
         break;
     }
+
+
 
     default:
         break;
@@ -630,22 +738,99 @@ int main()
 {
 
 
+
+    int NODE_SIZE = 60;
+    int windowIndex = 0;
+
+
+    options[0] = 0;
+    options[1] = 1;
+    options[2] = 1;
+
+    if (options[1] == 0) {
+        NODE_SIZE = 120;
+    }
+    if (options[1] == 1) {
+        NODE_SIZE = 60;
+    }
+    if (options[1] == 2) {
+        NODE_SIZE = 30;
+    }
+
+
+    sf::Texture backgroundTexture;
+    sf::Image imageBackground;
+    imageBackground.loadFromFile("startingScreen6.png");
+    backgroundTexture.loadFromImage(imageBackground);
+    sf::Sprite background(backgroundTexture);
+
+    sf::Texture regenerateTexture;
+    sf::Image imageRegenerate;
+    imageRegenerate.loadFromFile("regenerate.png");
+    regenerateTexture.loadFromImage(imageRegenerate);
+    sf::Sprite regenerate(regenerateTexture);
+    regenerate.setPosition(sf::Vector2f(10, 9));
+
+
+    sf::Texture settingsTexture;
+    sf::Image imageSettings;
+    imageSettings.loadFromFile("settings.png");
+    settingsTexture.loadFromImage(imageSettings);
+    sf::Sprite settings(settingsTexture);
+    settings.setPosition(sf::Vector2f(1800, 9));
+
+    sf::Texture giveupTexture;
+    sf::Image imageGiveup;
+    imageGiveup.loadFromFile("giveup2.png");
+    giveupTexture.loadFromImage(imageGiveup);
+    sf::Sprite giveup(giveupTexture);
+    giveup.setPosition(sf::Vector2f(915, 9));
+
+
+    sf::Texture backgroundSettingTexture;
+    sf::Image imageSettingsBackground;
+    imageSettingsBackground.loadFromFile("settingBackground.png");
+    backgroundSettingTexture.loadFromImage(imageSettingsBackground);
+    sf::Sprite settingBackground(backgroundSettingTexture);
+
+    sf::Texture htTexture;
+    sf::Image imageht;
+    imageht.loadFromFile("ht.png");
+    htTexture.loadFromImage(imageht);
+
+
+    sf::Sprite ht(htTexture);
+    sf::Sprite htArr[3] = { ht,ht,ht };
+
+    sf::Texture YWTexture;
+    sf::Image imageYW;
+    imageYW.loadFromFile("YouWon.png");
+    YWTexture.loadFromImage(imageYW);
+    sf::Sprite YW(YWTexture);
+
+
+
+
+
+
+
     float innerSize = nodesToWall * NODE_SIZE;
     float wallWidth = (NODE_SIZE - innerSize) / 2;
 
-    NodesPerColumn = SCREEN_HEIGHT / NODE_SIZE;
-    NodesPerRow = 2 * (SCREEN_WIDTH / 3.0) / NODE_SIZE;
+    NodesPerColumn = (SCREEN_HEIGHT - 108) / NODE_SIZE;
+    NodesPerRow = SCREEN_WIDTH / NODE_SIZE;
 
-    int usedAlgorithm = 1;
-    int usedSolvingAlgorithm = 2;
+    int usedAlgorithm = options[0] + 1;
+    int usedSolvingAlgorithm = options[2] + 1;
     vector<vector<Node>>nodes(NodesPerColumn, vector<Node>(NodesPerRow));
 
-    
+
 
     initializeAlgorithms(usedAlgorithm, nodes);
     initializeSolvingAlgorithms(usedSolvingAlgorithm, nodes);
 
-    bool isFinishedCreatingMaze = false;
+    bool giveUpClicked = false;
+    bool isFinishedGenerating = false;
 
 
 
@@ -654,7 +839,7 @@ int main()
 
 
 
-    
+
     Pair src = make_pair(0, 0);
     Pair dest = make_pair(NodesPerColumn - 1, NodesPerRow - 1);
 
@@ -663,10 +848,6 @@ int main()
 
 
 
-
-    ButtonView buttonBackTracking(10, 50, 73, 25, 1, "Backtracking");
-    ButtonView buttonPrim(90, 50, 70, 25, 2, "Prim");
-    ButtonView buttonKruskal(70, 80, 70, 25, 3, "Kruskal");
 
 
     sf::Image redCircle;
@@ -681,7 +862,8 @@ int main()
 
 
 
-    sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML Rectangle Example");
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Maze App", sf::Style::Fullscreen);
+
 
     sf::Sprite sprite;
     sf::Texture texture;
@@ -692,7 +874,7 @@ int main()
     //for prim algorithm 
     ///
 
-    bool startingSolving = false;
+    bool pathIsFounded = false;
     while (window.isOpen())
     {
         sf::Event event;
@@ -701,22 +883,112 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-
-            int x1 = buttonBackTracking.handleEvent(event);
-            int x2 = buttonPrim.handleEvent(event);
-            int x3 = buttonKruskal.handleEvent(event);
-            if (x1 || x2 || x3) {
-                currentX = 0;
-                currentY = 0;
-                usedAlgorithm = x1 | x2 | x3;
-                isFinishedCreatingMaze = false;
-                initializeAlgorithms(usedAlgorithm, nodes);
-                initializeSolvingAlgorithms(usedSolvingAlgorithm, nodes);
-                startingSolving = false;
-               
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                window.close();
             }
 
-            if (isFinishedCreatingMaze) {
+
+            if (event.type == sf::Event::MouseButtonPressed) {
+                if (event.mouseButton.button == sf::Mouse::Left) {
+                    // Check if the mouse click is within the bounds of the clickable area
+
+                    sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+                    cout << mousePosition.x << " " << mousePosition.y << '\n';
+
+
+                    if (windowIndex == 0) {
+                        if (mousePosition.x > 800.3 && mousePosition.x < 1119.7 && mousePosition.y>771.4 && mousePosition.y < 907.7) {
+                            windowIndex = 1;
+
+                        }
+                    }
+                    else {
+                        if (windowIndex == 1) {
+                            // regenerate
+                            if (mousePosition.x > 10 && mousePosition.x < 100 && mousePosition.y>9 && mousePosition.y < 99) {
+                                currentX = 0;
+                                currentY = 0;
+
+                                giveUpClicked = false;
+                                isFinishedGenerating = false;
+                                initializeAlgorithms(options[0] + 1, nodes);
+                                initializeSolvingAlgorithms(options[2] + 1, nodes);
+
+
+                                pathIsFounded = false;
+
+                            }
+
+                            // settings
+                            if (mousePosition.x > 1800 && mousePosition.x < 1890 && mousePosition.y>9 && mousePosition.y < 99) {
+                                windowIndex = 2;
+                                currentX = 0;
+                                currentY = 0;
+
+                                giveUpClicked = false;
+                                isFinishedGenerating = false;
+                                pathIsFounded = false;
+
+
+                            }
+                            // giveup
+                            if (mousePosition.x > 915 && mousePosition.x < 1005 && mousePosition.y>9 && mousePosition.y < 99) {
+
+
+                                giveUpClicked = true;
+                            }
+                        }
+                        else {
+                            if (windowIndex == 2) {
+
+
+                                //confirm button 
+                                if (mousePosition.x > 1450.9 && mousePosition.x < 1821 && mousePosition.y>928.6 && mousePosition.y < 1016) {
+
+                                    int optionssarr[3] = { 120,60,30 };
+                                    NODE_SIZE = optionssarr[options[1]];
+                                    innerSize = nodesToWall * NODE_SIZE;
+                                    wallWidth = (NODE_SIZE - innerSize) / 2;
+
+                                    NodesPerColumn = (SCREEN_HEIGHT - 108) / NODE_SIZE;
+                                    NodesPerRow = SCREEN_WIDTH / NODE_SIZE;
+
+                                    nodes = vector<vector<Node>>(NodesPerColumn, vector<Node>(NodesPerRow));
+
+
+                                    windowIndex = 1;
+                                    initializeAlgorithms(options[0] + 1, nodes);
+                                    initializeSolvingAlgorithms(options[2] + 1, nodes);
+
+                                    cout << "confirm is okay what is after confirm is the problem\n";
+                                }
+                                else {
+
+
+                                    pair<int, int>pos = getPos(mousePosition.x, mousePosition.y);
+                                    if (pos.first != -1 && pos.second != -1) {
+
+                                        options[pos.first] = pos.second;
+
+                                    }
+                                }
+                            }
+                            else {
+                                if (mousePosition.x > 650 && mousePosition.x < 1310 && mousePosition.y>911 && mousePosition.y < 1031) {
+                                    windowIndex = 0;
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+
+
+
+
+
+            if (isFinishedGenerating && !giveUpClicked) {
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
 
                     if (!nodes[currentX][currentY].walls[1] && possible(currentX - 1, currentY)) {
@@ -748,121 +1020,205 @@ int main()
                     cout << currentX << " " << currentY << '\n';
                 }
 
+                if (currentX == NodesPerColumn - 1 && currentY == NodesPerRow - 1) {
+                    windowIndex = 3;
+                    currentX = 0;
+                    currentY = 0;
+                    giveUpClicked = false;
+                    isFinishedGenerating = false;
+                    pathIsFounded = false;
+                    initializeAlgorithms(options[0] + 1, nodes);
+                    initializeSolvingAlgorithms(options[2] + 1, nodes);
+
+
+
+                }
+
             }
         }
-        buttonBackTracking.update();
-        buttonPrim.update();
-        buttonKruskal.update();
+
         window.clear(sf::Color::Black);
+        if (windowIndex == 0) {
 
-        buttonBackTracking.draw(window);
-        buttonPrim.draw(window);
-        buttonKruskal.draw(window);
-        if (usedAlgorithm == 1) {
+            window.draw(background);
 
 
-            if (s.empty()) {
-                cX = cY = -1;
-                isFinishedCreatingMaze = true;
-
-            }
-            else {
-                backTracking(s, nodes);
-            }
         }
         else {
-            if (usedAlgorithm == 2) {
-                cX = -1;
-                cY = -1;
-                if (!Vwalls.empty()) {
-                    prim(Vwalls, nodes);
-                }
-                else {
-                    isFinishedCreatingMaze = true;
-                }
-            }
-            else {
+            if (windowIndex == 1) {
+                window.clear(sf::Color::Black);
 
-                if (usedAlgorithm == 3) {
-                    // kurskal 
-                    cX = -1;
-                    cY = -1;
-                    if (!Vwalls.empty()) {
-                        Kruskal(Vwalls, nodes);
+                if (options[0] + 1 == 1) {
+
+
+                    if (s.empty()) {
+                        cX = cY = -1;
+                        isFinishedGenerating = true;
+
                     }
                     else {
-                        isFinishedCreatingMaze = true;
+                        backTracking(s, nodes);
                     }
-
                 }
-
-
-            }
-
-        }
-
-
-
-        
-
-
-        if (isFinishedCreatingMaze) {
-            sprite.setScale((NODE_SIZE * nodesToWall) / 512.0, (NODE_SIZE * nodesToWall) / 512.0);
-            sprite.setPosition(sf::Vector2f(currentY * NODE_SIZE + wallWidth + (SCREEN_WIDTH / 3.0), currentX * NODE_SIZE + wallWidth));
-
-            window.draw(sprite);
-
-            if (!startingSolving) {
-
-                
-
-                if (usedSolvingAlgorithm == 2) {
-                    if (!st.empty()) {
-                        bool found = solveWithDfs(nodes);
-                        if (found) {
-                            clearStack(st);
-                            startingSolving = true;
+                else {
+                    if (options[0] + 1 == 3) {
+                        cX = -1;
+                        cY = -1;
+                        if (!Vwalls.empty()) {
+                            prim(Vwalls, nodes);
+                        }
+                        else {
+                            isFinishedGenerating = true;
                         }
                     }
                     else {
 
-                        startingSolving = true;
-                    }
-
-                }
-
-
-                else {
-
-
-
-                    if (usedSolvingAlgorithm == 1) {
-                        if (!openList.empty()) {
-
-                            bool found = aStarSearch(nodes, src, dest, closedList);
-                            if (found) {
-                                clearStack(s);
-                                startingSolving = true;
+                        if (options[0] + 1 == 2) {
+                            // kurskal 
+                            cX = -1;
+                            cY = -1;
+                            if (!Vwalls.empty()) {
+                                Kruskal(Vwalls, nodes);
+                            }
+                            else {
+                                isFinishedGenerating = true;
                             }
 
                         }
-                        else {
-                            startingSolving = true;
-                        }
-
 
 
                     }
+
                 }
+
+
+
+
+
+                drawNodes(window, nodes, cX, cY, NODE_SIZE);
+
+                window.draw(regenerate);
+                window.draw(settings);
+                window.draw(giveup);
+
+                if (isFinishedGenerating && !giveUpClicked) {
+                    sprite.setScale((NODE_SIZE * nodesToWall) / 512.0, (NODE_SIZE * nodesToWall) / 512.0);
+                    sprite.setPosition(sf::Vector2f(currentY * NODE_SIZE + wallWidth, currentX * NODE_SIZE + wallWidth + 108));
+
+                    window.draw(sprite);
+
+
+                }
+
+                if (giveUpClicked) {
+
+                    if (!pathIsFounded) {
+
+
+
+                        if (options[2] + 1 == 3) {
+                            if (!st.empty()) {
+                                bool found = solveWithDfs(nodes);
+                                if (found) {
+                                    clearStack(st);
+                                    pathIsFounded = true;
+                                }
+                            }
+                            else {
+
+                                pathIsFounded = true;
+                            }
+
+                        }
+
+
+                        else {
+
+
+
+                            if (options[2] + 1 == 1) {
+                                if (!openList.empty()) {
+
+                                    bool found = aStarSearch(nodes, src, { NodesPerColumn - 1,NodesPerRow - 1 }, closedList);
+                                    if (found) {
+                                        clearStack(s);
+                                        pathIsFounded = true;
+                                    }
+
+                                }
+                                else {
+                                    pathIsFounded = true;
+                                }
+
+
+
+                            }
+                            else {
+                                if (options[2] + 1 == 2) {
+
+                                    if (!q.empty()) {
+                                        bool found = solveWithBfs(nodes);
+                                        if (found) {
+                                            clearQueue(q);
+                                            pathIsFounded = true;
+                                        }
+                                    }
+                                    else {
+
+                                        pathIsFounded = true;
+                                    }
+
+
+
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+
+
+            }
+            else {
+                if (windowIndex == 2) {
+
+                    window.draw(settingBackground);
+
+                    int height[3] = { 292,526,762 };
+
+                    for (int i = 0; i < 3; i++) {
+
+                        int x = 620;
+
+                        if (options[i] == 1) {
+
+                            x = 1090;
+                        }
+                        if (options[i] == 2) {
+
+                            x = 1480;
+                        }
+
+                        htArr[i].setPosition(sf::Vector2f(x, height[i]));
+                        window.draw(htArr[i]);
+                    }
+
+
+                }
+                else {
+                    window.draw(YW);
+                }
+
+
+
             }
         }
-        
-
-
-
-        
-
-        drawNodes(window, nodes, cX, cY);
 
         window.display();
 
