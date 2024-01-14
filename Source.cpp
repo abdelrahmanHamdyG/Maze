@@ -3,7 +3,6 @@
 #include<random>
 #include"Node.h";
 #include<map>
-#include "ButtonView.h"
 #include<ctime>
 
 
@@ -307,7 +306,7 @@ void Kruskal(vector<wall>& Vwalls, vector<vector<Node>>& nodes) {
 
         joinNodes(node1Row, node1Column, node2Row, node2Column, r, nodes);
         mergeGroups(nodes, node1->group, node2->group);
-        cout << node1->group << " " << node2->group << endl;
+        
     }
     Vwalls.erase(Vwalls.begin() + random);
 }
@@ -496,7 +495,7 @@ int h = 0;
 
 bool solveWithDfs(vector<vector<Node>>& nodes) {
 
-    cout << h++ << "\n";
+    
 
     bool found = false;
 
@@ -855,13 +854,6 @@ int main()
 
 
 
-
-
-
-
-
-
-
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Maze App", sf::Style::Fullscreen);
 
 
@@ -871,8 +863,6 @@ int main()
     sprite.setTexture(texture);
     int currentX = 0, currentY = 0;
 
-    //for prim algorithm 
-    ///
 
     bool pathIsFounded = false;
     while (window.isOpen())
@@ -893,7 +883,7 @@ int main()
                     // Check if the mouse click is within the bounds of the clickable area
 
                     sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-                    cout << mousePosition.x << " " << mousePosition.y << '\n';
+                    
 
 
                     if (windowIndex == 0) {
@@ -960,7 +950,7 @@ int main()
                                     initializeAlgorithms(options[0] + 1, nodes);
                                     initializeSolvingAlgorithms(options[2] + 1, nodes);
 
-                                    cout << "confirm is okay what is after confirm is the problem\n";
+                                    
                                 }
                                 else {
 
@@ -995,7 +985,7 @@ int main()
 
                         currentX -= 1;
                     }
-                    cout << currentX << " " << currentY << '\n';
+                    
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
                     if (!nodes[currentX][currentY].walls[3] && possible(currentX + 1, currentY)) {
@@ -1003,21 +993,21 @@ int main()
                         currentX += 1;
                     }
 
-                    cout << currentX << " " << currentY << '\n';
+                    
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
                     if (!nodes[currentX][currentY].walls[0] && possible(currentX, currentY - 1)) {
 
                         currentY -= 1;
                     }
-                    cout << currentX << " " << currentY << '\n';
+                    
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
                     if (!nodes[currentX][currentY].walls[2] && possible(currentX, currentY + 1)) {
 
                         currentY += 1;
                     }
-                    cout << currentX << " " << currentY << '\n';
+                    
                 }
 
                 if (currentX == NodesPerColumn - 1 && currentY == NodesPerRow - 1) {
@@ -1134,9 +1124,7 @@ int main()
 
                         else {
 
-
-
-                            if (options[2] + 1 == 1) {
+                            if (options[2] + 1 == 1) {  
                                 if (!openList.empty()) {
 
                                     bool found = aStarSearch(nodes, src, { NodesPerColumn - 1,NodesPerRow - 1 }, closedList);
